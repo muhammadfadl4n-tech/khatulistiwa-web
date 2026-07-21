@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Profile Agen LPG Kalbar</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
+<style>
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  --navy:#0f172a;
+  --navy-2:#172554;
+  --blue:#2563eb;
+  --orange:#ea580c;
+  --bg:#f4f7fb;
+  --panel:#ffffff;
+  --line:#dbe3ef;
+  --text:#111827;
+  --muted:#64748b;
+  --soft:#eef4ff;
+  --shadow:0 20px 45px rgba(15,23,42,.14);
+}
+html,body{height:100%;margin:0}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  line-height:1.45;
+}
+button,input,select{font:inherit}
+button{cursor:pointer}
+.shell{min-height:100%;display:flex;flex-direction:column}
+.hero{
+  background:linear-gradient(135deg,var(--navy) 0%,#12316f 62%,var(--blue) 100%);
+  color:#fff;
+  padding:18px 22px 20px;
+}
+.hero-inner{max-width:1440px;margin:0 auto}
+.nav{display:flex;align-items:center;gap:16px;margin-bottom:18px}
+.brand{font-weight:800;letter-spacing:.2px;margin-right:auto}
+.nav a{color:rgba(255,255,255,.72);text-decoration:none;font-size:14px;font-weight:650}
+.nav a:hover,.nav a.active{color:#fff}
+.title-row{display:grid;grid-template-columns:1fr auto;gap:22px;align-items:end}
+h1{font-size:clamp(28px,4vw,46px);line-height:1.05;margin:0 0 8px;font-weight:850;letter-spacing:0}
+.lead{max-width:760px;margin:0;color:rgba(255,255,255,.78);font-size:15px}
+.stats{display:grid;grid-template-columns:repeat(3,150px);gap:10px}
+.stat-card{
+  min-height:88px;
+  padding:14px;
+  border:1px solid rgba(255,255,255,.16);
+  background:rgba(255,255,255,.09);
+  border-radius:8px;
+  backdrop-filter:blur(12px);
+}
+.stat-card .label{font-size:11px;text-transform:uppercase;color:rgba(255,255,255,.64);font-weight:750;letter-spacing:.6px}
+.stat-card .value{font-size:27px;font-weight:850;margin-top:6px}
+.toolbar{
+  max-width:1440px;
+  margin:0 auto;
+  padding:14px 22px;
+  display:grid;
+  grid-template-columns:minmax(260px,1fr) 230px 230px;
+  gap:10px;
+  background:var(--bg);
+}
+.control{position:relative}
+.control input,.control select{
+  width:100%;
+  height:44px;
+  border:1px solid var(--line);
+  border-radius:8px;
+  background:#fff;
+  color:var(--text);
+  padding:0 13px;
+  outline:none;
+}
+.control input{padding-left:40px}
+.control input:focus,.control select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.12)}
+.search-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:15px}
+.workspace{
+  flex:1;
+  width:100%;
+  max-width:1440px;
+  margin:0 auto;
+  padding:0 22px 22px;
+  display:grid;
+  grid-template-columns:400px minmax(0,1fr);
+  gap:14px;
+  min-height:0;
+}
+.sidebar,.map-panel{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:8px;
+  min-height:0;
+  overflow:hidden;
+  box-shadow:0 10px 28px rgba(15,23,42,.06);
+}
+.sidebar{display:flex;flex-direction:column}
+.list-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 14px;border-bottom:1px solid var(--line)}
+.list-head h2{font-size:14px;margin:0;font-weight:800}
+.list-count{font-size:12px;color:var(--muted)}
+.agent-list{overflow:auto;padding:10px;display:grid;gap:9px}
+.agent-card{
+  display:grid;
+  grid-template-columns:48px 1fr;
+  gap:11px;
+  width:100%;
+  border:1px solid var(--line);
+  background:#fff;
+  border-radius:8px;
+  padding:11px;
+  text-align:left;
+  transition:.18s ease;
+}
+.agent-card:hover{border-color:var(--blue);box-shadow:0 10px 22px rgba(37,99,235,.12);transform:translateY(-1px)}
+.avatar{
+  width:48px;height:48px;border-radius:8px;color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-weight:850;font-size:16px;
+}
+.agent-name{font-size:14px;font-weight:800;margin:0 0 3px;color:var(--text)}
+.agent-meta{font-size:12px;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px 10px}
+.tw3-badge{
+  display:inline-flex;
+  align-items:center;
+  width:max-content;
+  margin-top:8px;
+  padding:3px 8px;
+  border-radius:6px;
+  background:#fff7ed;
+  color:var(--orange);
+  font-size:12px;
+  font-weight:800;
+}
+.map-panel{position:relative}
+#map{height:100%;min-height:620px;background:#e8eef7}
+.leaflet-tooltip.agent-tip{border:0;border-radius:6px;box-shadow:0 12px 24px rgba(15,23,42,.18);font-weight:800}
+.pin{
+  width:34px;height:34px;border-radius:50% 50% 50% 8px;
+  transform:rotate(-45deg);
+  display:flex;align-items:center;justify-content:center;
+  background:var(--blue);
+  color:#fff;
+  box-shadow:0 10px 20px rgba(37,99,235,.32);
+  border:3px solid #fff;
+}
+.pin span{transform:rotate(45deg);font-size:12px;font-weight:850}
+.skeleton{padding:10px;display:grid;gap:9px}
+.sk-card{height:92px;border-radius:8px;background:linear-gradient(90deg,#eef2f7,#f8fafc,#eef2f7);background-size:200% 100%;animation:shimmer 1.2s infinite}
+@keyframes shimmer{to{background-position:-200% 0}}
+.empty{padding:44px 22px;text-align:center;color:var(--muted)}
+.empty strong{display:block;color:var(--text);font-size:16px;margin-bottom:5px}
+.modal{
+  position:fixed;inset:0;z-index:1200;
+  display:none;align-items:center;justify-content:center;
+  background:rgba(15,23,42,.62);
+  padding:20px;
+}
+.modal.open{display:flex}
+.dialog{
+  width:min(920px,100%);
+  max-height:92vh;
+  overflow:auto;
+  background:#fff;
+  border-radius:8px;
+  box-shadow:var(--shadow);
+}
+.dialog-head{
+  display:flex;align-items:flex-start;gap:14px;
+  padding:18px 20px;
+  color:#fff;
+  background:linear-gradient(135deg,var(--navy),var(--blue));
+}
+.dialog-title{flex:1}
+.dialog-title h3{margin:0 0 5px;font-size:21px}
+.dialog-title p{margin:0;color:rgba(255,255,255,.75);font-size:13px}
+.close{
+  width:36px;height:36px;border:1px solid rgba(255,255,255,.22);
+  border-radius:8px;background:rgba(255,255,255,.1);color:#fff;font-size:22px;line-height:1;
+}
+.dialog-body{padding:18px 20px 22px}
+.detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.field{border:1px solid var(--line);border-radius:8px;padding:10px;background:#fff}
+.field .k{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:800;margin-bottom:4px}
+.field .v{font-size:14px;word-break:break-word}
+.wide{grid-column:1/-1}
+.tw3-table{width:100%;border-collapse:collapse;margin-top:14px;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.tw3-table th,.tw3-table td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:right}
+.tw3-table th:first-child,.tw3-table td:first-child{text-align:left}
+.tw3-table th{background:var(--soft);font-size:12px;color:#334155;text-transform:uppercase;letter-spacing:.4px}
+.tw3-table tr:last-child td{border-bottom:0;font-weight:850;color:var(--orange)}
+@media(max-width:900px){
+  .hero{padding:14px 14px 16px}
+  .nav{gap:10px;overflow-x:auto;margin-bottom:14px}
+  .nav a{font-size:13px;white-space:nowrap}
+  .title-row{grid-template-columns:1fr;align-items:start}
+  .stats{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .stat-card{min-height:76px;padding:10px}
+  .stat-card .value{font-size:22px}
+  .toolbar{grid-template-columns:1fr;padding:12px 14px}
+  .workspace{
+    padding:0 14px 14px;
+    grid-template-columns:1fr;
+    grid-template-rows:35vh minmax(0,1fr);
+    height:auto;
+  }
+  .map-panel{order:1}
+  .sidebar{order:2;max-height:52vh}
+  #map{min-height:35vh;height:35vh}
+  .detail-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="hero">
+    <div class="hero-inner">
+      <nav class="nav">
+        <div class="brand">Portal 5555</div>
+        <a href="/">Beranda</a>
+        <a href="/lpg">LPG</a>
+        <a class="active" href="/agen">Agen</a>
+        <a href="/pangkalan">🗺️ Pangkalan</a>
+      </nav>
+      <div class="title-row">
+        <div>
+          <h1>Profile Agen LPG Kalbar</h1>
+          <p class="lead">Direktori agen lengkap dengan lokasi gudang, kontak pengusaha dan PIC, dukungan operasional, serta realisasi TW3.</p>
+        </div>
+        <section class="stats" aria-label="Statistik agen">
+          <div class="stat-card"><div class="label">Total Agen</div><div class="value" id="statTotal">-</div></div>
+          <div class="stat-card"><div class="label">Kab/Kota</div><div class="value" id="statKab">-</div></div>
+          <div class="stat-card"><div class="label">TW3</div><div class="value" id="statTw3">-</div></div>
+        </section>
+      </div>
+    </div>
+  </header>
+
+  <section class="toolbar" aria-label="Filter agen">
+    <label class="control">
+      <span class="search-icon">⌕</span>
+      <input id="searchInput" type="search" placeholder="Cari nama agen, sold to, wilayah, PIC...">
+    </label>
+    <label class="control">
+      <select id="wilayahSelect"><option value="">Semua wilayah</option></select>
+    </label>
+    <label class="control">
+      <select id="rayonSelect"><option value="">Semua rayon</option></select>
+    </label>
+  </section>
+
+  <main class="workspace">
+    <aside class="sidebar">
+      <div class="list-head">
+        <h2>Daftar Agen</h2>
+        <span class="list-count" id="listCount">Memuat</span>
+      </div>
+      <div class="agent-list" id="agentList">
+        <div class="skeleton"><div class="sk-card"></div><div class="sk-card"></div><div class="sk-card"></div></div>
+      </div>
+    </aside>
+    <section class="map-panel" aria-label="Peta agen">
+      <div id="map"></div>
+    </section>
+  </main>
+</div>
+
+<div class="modal" id="detailModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="dialog">
+    <div class="dialog-head">
+      <div class="avatar" id="modalAvatar">AG</div>
+      <div class="dialog-title">
+        <h3 id="modalTitle">Detail Agen</h3>
+        <p id="modalSubtitle"></p>
+      </div>
+      <button class="close" id="closeModal" aria-label="Tutup">&times;</button>
+    </div>
+    <div class="dialog-body" id="modalBody"></div>
+  </div>
+</div>
+
+<script>
+const colors=["#2563eb","#ea580c","#059669","#7c3aed","#dc2626","#0891b2"];
+const state={agents:[],map:null,markers:[]};
+const el=id=>document.getElementById(id);
+const fmt=n=>(n||0).toLocaleString("id-ID");
+const esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m]));
+const initials=name=>name.split(/\s+/).filter(Boolean).slice(0,2).map(w=>w[0]).join("").toUpperCase();
+const avatarColor=name=>colors[Math.abs([...name].reduce((a,c)=>a+c.charCodeAt(0),0))%colors.length];
+
+function queryString(){
+  const p=new URLSearchParams();
+  if(el("searchInput").value.trim()) p.set("q",el("searchInput").value.trim());
+  if(el("wilayahSelect").value) p.set("wilayah",el("wilayahSelect").value);
+  if(el("rayonSelect").value) p.set("rayon",el("rayonSelect").value);
+  return p.toString();
+}
+
+async function fetchJson(url){
+  const res=await fetch(url,{cache:"no-store"});
+  if(!res.ok) throw new Error("HTTP "+res.status);
+  return res.json();
+}
+
+async function init(){
+  await Promise.all([loadStats(),loadOptions()]);
+  await loadAgents();
+  bindEvents();
+}
+
+function bindEvents(){
+  let timer=null;
+  el("searchInput").addEventListener("input",()=>{
+    clearTimeout(timer);
+    timer=setTimeout(loadAgents,180);
+  });
+  el("wilayahSelect").addEventListener("change",loadAgents);
+  el("rayonSelect").addEventListener("change",loadAgents);
+  el("closeModal").addEventListener("click",closeModal);
+  el("detailModal").addEventListener("click",e=>{if(e.target.id==="detailModal")closeModal()});
+  document.addEventListener("keydown",e=>{if(e.key==="Escape")closeModal()});
+}
+
+async function loadStats(){
+  const s=await fetchJson("/api/agen/stats");
+  el("statTotal").textContent=fmt(s.total);
+  el("statKab").textContent=fmt(s.kabupaten_count);
+  el("statTw3").textContent=fmt(s.tw3_count);
+}
+
+async function loadOptions(){
+  const data=await fetchJson("/api/agen");
+  fillSelect("wilayahSelect",[...new Set(data.map(a=>a["Wilayah"]).filter(Boolean))]);
+  fillSelect("rayonSelect",[...new Set(data.map(a=>a["Rayon SBM"]).filter(Boolean))]);
+}
+
+function fillSelect(id,values){
+  const first=el(id).options[0].outerHTML;
+  el(id).innerHTML=first+values.sort().map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join("");
+}
+
+async function loadAgents(){
+  el("listCount").textContent="Memuat";
+  el("agentList").innerHTML='<div class="skeleton"><div class="sk-card"></div><div class="sk-card"></div><div class="sk-card"></div></div>';
+  try{
+    const qs=queryString();
+    state.agents=await fetchJson("/api/agen"+(qs?"?"+qs:""));
+    renderList();
+    renderMap();
+  }catch(err){
+    el("listCount").textContent="Gagal";
+    el("agentList").innerHTML=`<div class="empty"><strong>Gagal memuat data</strong>${esc(err.message)}</div>`;
+  }
+}
+
+function renderList(){
+  el("listCount").textContent=fmt(state.agents.length)+" agen";
+  if(!state.agents.length){
+    el("agentList").innerHTML='<div class="empty"><strong>Tidak ada agen</strong>Ubah kata kunci atau filter wilayah.</div>';
+    return;
+  }
+  el("agentList").innerHTML=state.agents.map(a=>{
+    const name=a["Nama Agen"];
+    return `<button class="agent-card" type="button" data-name="${esc(name)}">
+      <div class="avatar" style="background:${avatarColor(name)}">${esc(initials(name))}</div>
+      <div>
+        <p class="agent-name">${esc(name)}</p>
+        <div class="agent-meta"><span>${esc(a["Wilayah"])}</span><span>${esc(a["Rayon SBM"])}</span></div>
+        <span class="tw3-badge">TW3 ${fmt(a.tw3.Total)}</span>
+      </div>
+    </button>`;
+  }).join("");
+  document.querySelectorAll(".agent-card").forEach(card=>{
+    card.addEventListener("click",()=>openDetail(card.dataset.name));
+  });
+}
+
+function ensureMap(){
+  if(state.map) return;
+  state.map=L.map("map",{scrollWheelZoom:true}).setView([-0.05,109.34],9);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{
+    maxZoom:19,
+    attribution:"&copy; OpenStreetMap"
+  }).addTo(state.map);
+}
+
+function renderMap(){
+  ensureMap();
+  state.markers.forEach(m=>m.remove());
+  state.markers=[];
+  const bounds=[];
+  state.agents.forEach(a=>{
+    const lat=Number(a.latitude),lng=Number(a.longitude);
+    if(!Number.isFinite(lat)||!Number.isFinite(lng)) return;
+    const name=a["Nama Agen"];
+    const icon=L.divIcon({
+      className:"",
+      html:`<div class="pin" style="background:${avatarColor(name)}"><span>${esc(initials(name))}</span></div>`,
+      iconSize:[34,34],
+      iconAnchor:[17,34]
+    });
+    const marker=L.marker([lat,lng],{icon}).addTo(state.map)
+      .bindTooltip(esc(name),{className:"agent-tip"})
+      .on("click",()=>openDetail(name));
+    state.markers.push(marker);
+    bounds.push([lat,lng]);
+  });
+  if(bounds.length) state.map.fitBounds(bounds,{padding:[45,45],maxZoom:11});
+  setTimeout(()=>state.map.invalidateSize(),80);
+}
+
+async function openDetail(name){
+  const data=await fetchJson("/api/agen/detail?nama="+encodeURIComponent(name));
+  const color=avatarColor(data["Nama Agen"]);
+  el("modalAvatar").style.background=color;
+  el("modalAvatar").textContent=initials(data["Nama Agen"]);
+  el("modalTitle").textContent=data["Nama Agen"];
+  el("modalSubtitle").textContent=`${data["Wilayah"]} | ${data["Rayon SBM"]} | Sold To ${data["Sold To"]}`;
+  el("modalBody").innerHTML=detailHtml(data);
+  el("detailModal").classList.add("open");
+}
+
+function closeModal(){el("detailModal").classList.remove("open")}
+
+function field(k,v,wide=false){
+  return `<div class="field ${wide?"wide":""}"><div class="k">${esc(k)}</div><div class="v">${esc(v)}</div></div>`;
+}
+
+function detailHtml(a){
+  const keys=[
+    ["No",a.No],["Sold To",a["Sold To"]],["Wilayah",a["Wilayah"]],["Rayon SBM",a["Rayon SBM"]],
+    ["Alamat Kantor",a["Alamat Kantor"],true],["Desa/Kel",a["Desa/Kel"]],["Kecamatan",a["Kecamatan"]],
+    ["Latitude",a.latitude],["Longitude",a.longitude],["Pengusaha",a["Pengusaha"]],["No Pengusaha",a["No Pengusaha"]],
+    ["PIC",a.PIC],["No PIC",a["No PIC"]],["Armada Truk",a["Kepemilikan armada Truk"]],
+    ["Armada Pick Up",a["Kepemilikan armada Pick Up"]],["Afiliasi",a.Afiliasi],
+    ["Alamat Gudang",a["Alamat Gudang"],true],["Support Pertamina",a["Support Pertamina"],true],
+    ["Background",a.Background,true]
+  ];
+  const rows=["Juli","Agustus","September","Total"].map(m=>`<tr><td>${m}</td><td>${fmt(a.tw3[m])}</td></tr>`).join("");
+  return `<div class="detail-grid">${keys.map(x=>field(x[0],x[1],x[2])).join("")}</div>
+    <table class="tw3-table">
+      <thead><tr><th>Bulan</th><th>Realisasi TW3</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+window.addEventListener("load",()=>init().catch(err=>{
+  el("agentList").innerHTML=`<div class="empty"><strong>Gagal memuat halaman</strong>${esc(err.message)}</div>`;
+}));
+</script>
+</body>
+</html>

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 — Portal 5555</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --card: #1e293b;
+            --line: #334155;
+            --text: #e8edf5;
+            --muted: #7a8ba8;
+            --blue-2: #60a5fa;
+        }
+        *, *::before, *::after { box-sizing: border-box; }
+        body { font-family: Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif; font-size: 14px; line-height: 1.5; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
+        display: flex; flex-direction: column; min-height: 100vh;
+        margin: 0; background: #0f172a; color: var(--text); text-align: center; }
+        .hero{background:rgba(15,23,42,.9);border-bottom:1px solid var(--line);padding:18px 22px 20px;text-align:left}
+        .hero-inner{max-width:1440px;margin:0 auto;width:100%}
+        .nav{display:flex;align-items:center;gap:16px;margin-bottom:18px}
+        .brand{font-weight:800;letter-spacing:.2px;margin-right:auto}
+        .nav a{color:var(--muted);text-decoration:none;font-size:14px;font-weight:650}
+        .nav a:hover,.nav a.active{color:var(--blue-2)}
+        .page { flex: 1; display: flex; justify-content: center; align-items: center; padding: 2rem; }
+        .card { background: var(--card); padding: 3rem; border-radius: 1rem; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); }
+        .card .icon { font-size: 4rem; margin-bottom: 1rem; }
+        h1 { font-size: clamp(28px, 4vw, 46px); margin: 0; color: #f59e0b; }
+        p { font-size: 1.1rem; color: var(--muted); margin: 1rem 0; }
+        .card a { color: #3b82f6; text-decoration: none; display: inline-block; margin-top: 1rem; }
+        .card a:hover { text-decoration: underline; }
+        @media (max-width: 640px) {
+            .hero{padding:12px 12px 14px}
+            .nav{gap:8px;overflow-x:auto;margin-bottom:10px;padding-bottom:0}
+            .nav a{font-size:12px;white-space:nowrap}
+            .brand{font-size:14px}
+        }
+    </style>
+</head>
+<body>
+    <header class="hero">
+        <div class="hero-inner">
+            <nav class="nav">
+                <div class="brand">Portal 5555</div>
+                <a href="/">🏠 Beranda</a>
+                <a href="/lpg">⛽ LPG</a>
+                <a href="/agen">🏢 Agen</a>
+                <a href="/pangkalan">🗺️ Pangkalan</a>
+            </nav>
+        </div>
+    </header>
+    <div class="page">
+        <div class="card">
+            <div class="icon">🔍</div>
+            <h1>404</h1>
+            <p>Halaman yang kamu cari tidak ditemukan.</p>
+            <a href="/">&larr; Kembali ke Beranda</a>
+        </div>
+    </div>
+</body>
+</html>

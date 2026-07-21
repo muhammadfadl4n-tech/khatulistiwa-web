@@ -1,0 +1,1 @@
+ALTER TABLE `forms` ADD `owner_email` text;

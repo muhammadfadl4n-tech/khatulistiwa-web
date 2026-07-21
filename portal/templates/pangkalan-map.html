@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pangkalan Geo-Mapper - Portal 5555</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  --bg:#0a0e17;
+  --card:#0f172a;
+  --card2:#111b2e;
+  --field:#0b1424;
+  --line:rgba(148,163,184,.16);
+  --line2:rgba(148,163,184,.26);
+  --text:#e8edf5;
+  --muted:#8ea0bb;
+  --blue:#3b82f6;
+  --blue2:#60a5fa;
+  --green:#10b981;
+  --red:#ef4444;
+  --red2:#fca5a5;
+  --orange:#f59e0b;
+  --orange2:#fdba74;
+  --purple:#8b5cf6;
+  --purple2:#c4b5fd;
+  --shadow:0 24px 60px rgba(0,0,0,.36);
+}
+html,body{height:100%;margin:0}
+body{
+  min-height:100vh;
+  font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+  font-size:14px;
+  background:
+    radial-gradient(circle at 12% -12%,rgba(59,130,246,.16),transparent 28rem),
+    radial-gradient(circle at 88% 0,rgba(16,185,129,.10),transparent 25rem),
+    var(--bg);
+  color:var(--text);
+  line-height:1.5;
+}
+button,input,select{font:inherit}
+button{cursor:pointer}
+input,select{color-scheme:dark}
+.shell{height:100vh;min-height:720px;display:flex;flex-direction:column;overflow:hidden}
+.hero{flex:0 0 auto;background:rgba(10,14,23,.92);border-bottom:1px solid var(--line);padding:16px 22px 18px}
+.hero-inner{max-width:1440px;margin:0 auto}
+.nav{display:flex;align-items:center;gap:16px;margin-bottom:16px}
+.brand{font-weight:800;letter-spacing:.2px;margin-right:auto}
+.nav a{color:var(--muted);text-decoration:none;font-size:14px;font-weight:650;white-space:nowrap}
+.nav a:hover,.nav a.active{color:var(--blue2)}
+.title-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:18px;align-items:end}
+h1{font-size:clamp(28px,3vw,42px);line-height:1.05;margin:0 0 8px;font-weight:850;letter-spacing:0}
+.lead{max-width:760px;margin:0;color:var(--muted);font-size:14px}
+.stats{display:grid;grid-template-columns:repeat(4,132px);gap:10px}
+.stat-card{min-height:78px;padding:12px 13px;border:1px solid var(--line);background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.025));border-radius:8px}
+.stat-card .label{font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:800;letter-spacing:.55px}
+.stat-card .value{font-size:24px;font-weight:850;margin-top:5px}
+.stat-card .value.issue{color:var(--red2)}
+.workspace{
+  flex:1 1 auto;
+  min-height:0;
+  width:100%;
+  max-width:1440px;
+  margin:0 auto;
+  padding:14px 22px 22px;
+  display:grid;
+  grid-template-columns:340px minmax(0,1fr);
+  gap:14px;
+}
+.sidebar,.map-panel{min-height:0;background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);overflow:hidden}
+.sidebar{display:flex;flex-direction:column}
+.sidebar-scroll{flex:1 1 auto;min-height:0;overflow:auto;padding:14px;display:flex;flex-direction:column;gap:13px}
+.panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.panel-head h2{font-size:14px;margin:0;font-weight:800}
+.counter{font-size:12px;color:var(--muted)}
+.counter strong{color:var(--text);font-size:14px}
+.view-toggle{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:rgba(255,255,255,.05);border:1px solid var(--line);padding:4px;border-radius:999px}
+.view-btn{height:34px;border:0;border-radius:999px;background:transparent;color:var(--muted);font-size:12px;font-weight:800}
+.view-btn:hover{color:var(--text);background:rgba(255,255,255,.05)}
+.view-btn.active{background:var(--blue);color:#fff}
+.field{display:grid;gap:6px}
+.field label{font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:800}
+.field input,.field select{
+  width:100%;
+  height:40px;
+  border:1px solid var(--line2);
+  border-radius:8px;
+  background:var(--field);
+  color:var(--text);
+  padding:0 11px;
+  outline:none;
+}
+.field input:focus,.field select:focus{border-color:rgba(96,165,250,.75);box-shadow:0 0 0 3px rgba(59,130,246,.14)}
+.field input::placeholder{color:rgba(142,160,187,.62)}
+.field select{appearance:none;padding-right:34px}
+.select-wrap{position:relative}
+.select-wrap::after{
+  content:"";
+  position:absolute;
+  right:13px;
+  top:50%;
+  width:8px;
+  height:8px;
+  border-right:2px solid var(--muted);
+  border-bottom:2px solid var(--muted);
+  transform:translateY(-66%) rotate(45deg);
+  pointer-events:none;
+}
+.filter-actions{display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:2px}
+.btn{
+  min-height:38px;
+  border:1px solid var(--line2);
+  border-radius:8px;
+  background:var(--field);
+  color:var(--text);
+  padding:0 12px;
+  font-weight:800;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+}
+.btn:hover{border-color:rgba(96,165,250,.55);background:#0e1a2d}
+.btn.primary{background:var(--blue);border-color:var(--blue);color:#fff}
+.issues-panel{flex:0 0 auto;border-top:1px solid var(--line);padding:14px;background:rgba(255,255,255,.025)}
+.issues-toggle{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;background:transparent;border:0;color:var(--text);font-weight:850;padding:0}
+.issues-toggle .chevron{color:var(--muted);transition:transform .18s ease}
+.issues-toggle.open .chevron{transform:rotate(180deg)}
+.issues-body{display:none;margin-top:12px;max-height:310px;overflow:auto}
+.issues-body.open{display:block}
+.issue-note{font-size:12px;color:var(--muted);line-height:1.45;margin-bottom:10px}
+.issue-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.issue-card{border:1px solid var(--line);border-radius:8px;padding:10px 7px;text-align:center;background:rgba(255,255,255,.035);cursor:pointer}
+.issue-card:hover{border-color:rgba(96,165,250,.55);background:rgba(255,255,255,.07)}
+.issue-card .n{font-size:19px;font-weight:850;line-height:1.1}
+.issue-card .l{margin-top:5px;font-size:9px;text-transform:uppercase;color:var(--muted);font-weight:800;line-height:1.2}
+.issue-card.red .n{color:var(--red2)}
+.issue-card.orange .n{color:var(--orange2)}
+.issue-card.purple .n{color:var(--purple2)}
+.agen-issues h3{font-size:12px;color:var(--muted);margin:0 0 8px;text-transform:uppercase;letter-spacing:.4px}
+.agen-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 9px;border:1px solid var(--line);border-radius:7px;background:rgba(255,255,255,.035);margin-bottom:6px;cursor:pointer}
+.agen-row:hover{background:rgba(255,255,255,.065)}
+.agen-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;font-weight:700}
+.badges{display:flex;gap:4px;flex-shrink:0}
+.badge{font-size:10px;font-weight:850;padding:2px 6px;border-radius:5px;border:1px solid transparent}
+.badge.red{background:rgba(239,68,68,.14);border-color:rgba(239,68,68,.28);color:var(--red2)}
+.badge.orange{background:rgba(245,158,11,.14);border-color:rgba(245,158,11,.30);color:var(--orange2)}
+.badge.purple{background:rgba(139,92,246,.14);border-color:rgba(139,92,246,.30);color:var(--purple2)}
+.empty,.error{padding:18px 10px;text-align:center;color:var(--muted);font-size:12px}
+.error{color:var(--red2)}
+.map-panel{position:relative;height:100%}
+.map-container{height:100%;min-height:0;position:relative}
+#map{height:100%;min-height:520px;width:100%;background:#0b1220}
+.map-status{position:absolute;z-index:900;top:12px;left:50%;transform:translateX(-50%);max-width:min(520px,calc(100% - 24px));padding:9px 12px;border-radius:8px;border:1px solid var(--line);background:rgba(15,23,42,.94);color:var(--muted);box-shadow:0 14px 34px rgba(0,0,0,.28);font-size:12px;display:none}
+.map-status.show{display:block}
+.legend{
+  position:absolute;
+  z-index:800;
+  right:16px;
+  bottom:16px;
+  width:196px;
+  border:1px solid var(--line);
+  border-radius:10px;
+  background:rgba(15,23,42,.94);
+  box-shadow:var(--shadow);
+  padding:12px 13px;
+  font-size:12px;
+}
+.legend-title{font-weight:850;margin-bottom:8px}
+.legend-row{display:flex;align-items:center;gap:8px;margin-top:6px;color:var(--muted)}
+.dot{width:12px;height:12px;border-radius:50%;border:2px solid #fff;box-shadow:0 2px 7px rgba(0,0,0,.44);display:inline-block;flex:0 0 auto}
+.dot.blue{background:var(--blue)}
+.dot.red{background:var(--red)}
+.dot.orange{background:var(--orange)}
+.dot.purple{background:var(--purple)}
+.map-marker{background:transparent!important;border:0!important;display:flex;align-items:center;justify-content:center}
+.map-marker .dot{width:15px;height:15px;border-width:2.5px}
+.leaflet-container{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
+.leaflet-popup-content-wrapper{background:var(--card);color:var(--text);border:1px solid var(--line);border-radius:10px;box-shadow:0 18px 38px rgba(0,0,0,.34)}
+.leaflet-popup-tip{background:var(--card);border:1px solid var(--line)}
+.leaflet-popup-content{font-size:13px;line-height:1.45;margin:12px 14px;min-width:240px}
+.popup-title{font-size:15px;font-weight:850;margin-bottom:8px;padding-bottom:7px;border-bottom:1px solid var(--line)}
+.popup-row{display:grid;grid-template-columns:86px 1fr;gap:10px;margin:5px 0}
+.popup-row .k{color:var(--muted);font-size:11px;text-transform:uppercase;font-weight:800}
+.popup-row .v{text-align:right;font-weight:650;word-break:break-word}
+.marker-cluster-small,.marker-cluster-medium,.marker-cluster-large{background-color:rgba(59,130,246,.34)}
+.marker-cluster-small div,.marker-cluster-medium div,.marker-cluster-large div{background-color:rgba(59,130,246,.82);color:#fff;font-weight:850}
+.modal{position:fixed;inset:0;z-index:2000;display:none;align-items:center;justify-content:center;background:rgba(3,7,18,.74);padding:20px}
+.modal.open{display:flex}
+.dialog{width:min(820px,100%);max-height:84vh;overflow:hidden;display:flex;flex-direction:column;background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow)}
+.dialog-head{flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:15px 17px;border-bottom:1px solid var(--line);background:linear-gradient(135deg,rgba(59,130,246,.16),rgba(16,185,129,.09))}
+.dialog-head h2{font-size:17px;margin:0}
+.close{width:36px;height:36px;border:1px solid var(--line);border-radius:8px;background:rgba(255,255,255,.06);color:var(--text);font-size:24px;line-height:1}
+.dialog-body{overflow:auto;padding:14px 17px}
+.issue-item{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px;border:1px solid var(--line);border-radius:8px;background:rgba(255,255,255,.03);margin-bottom:8px;font-size:12px}
+.issue-main{min-width:0}
+.issue-main strong{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.issue-main span{display:block;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media(max-width:1020px){
+  .shell{height:auto;min-height:100vh;overflow:auto}
+  .title-row{grid-template-columns:1fr}
+  .stats{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .workspace{grid-template-columns:1fr;grid-template-rows:auto 68vh}
+  .sidebar{max-height:none}
+}
+@media(max-width:720px){
+  .hero{padding:12px}
+  .nav{gap:9px;overflow-x:auto;margin-bottom:12px}
+  .nav a{font-size:12px}
+  .brand{font-size:14px}
+  .stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+  .stat-card{min-height:64px;padding:10px}
+  .stat-card .value{font-size:20px}
+  .workspace{padding:10px;grid-template-rows:auto 58vh}
+  .map-panel{order:1}
+  .sidebar{order:2}
+  .legend{right:10px;bottom:10px;width:178px;padding:10px;font-size:11px}
+  .issue-item{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="hero">
+    <div class="hero-inner">
+      <nav class="nav" aria-label="Navigasi utama">
+        <div class="brand">Portal 5555</div>
+        <a href="/">🏠 Beranda</a>
+        <a href="/lpg">⛽ LPG</a>
+        <a href="/agen">🏢 Agen</a>
+        <a class="active" href="/pangkalan">🗺️ Pangkalan</a>
+      </nav>
+      <div class="title-row">
+        <div>
+          <h1>🗺️ Pangkalan Geo-Mapper</h1>
+          <p class="lead">Peta interaktif pangkalan LPG Kalimantan Barat dengan filter wilayah, status, issue data, clustering, heatmap, dan ekspor.</p>
+        </div>
+        <section class="stats" aria-label="Statistik pangkalan">
+          <div class="stat-card"><div class="label">Total Pangkalan</div><div class="value" id="statTotal">-</div></div>
+          <div class="stat-card"><div class="label">Active</div><div class="value" id="statActive">-</div></div>
+          <div class="stat-card"><div class="label">Inactive</div><div class="value" id="statInactive">-</div></div>
+          <div class="stat-card"><div class="label">Issue Count</div><div class="value issue" id="statIssue">-</div></div>
+        </section>
+      </div>
+    </div>
+  </header>
+
+  <main class="workspace">
+    <aside class="sidebar" aria-label="Filter pangkalan">
+      <div class="sidebar-scroll">
+        <div class="panel-head">
+          <h2>Filter</h2>
+          <span class="counter"><strong id="filterCount">-</strong> tampil</span>
+        </div>
+
+        <div class="view-toggle" aria-label="Mode peta">
+          <button class="view-btn active" id="markersBtn" type="button" data-view="markers">📍 Markers</button>
+          <button class="view-btn" id="heatmapBtn" type="button" data-view="heatmap">🔥 Heatmap</button>
+        </div>
+
+        <div class="field">
+          <label for="searchInput">Search nama / ID</label>
+          <input id="searchInput" type="search" autocomplete="off" placeholder="Nama pangkalan atau ID registrasi">
+        </div>
+
+        <div class="field">
+          <label for="agenSelect">Agen</label>
+          <div class="select-wrap"><select id="agenSelect"><option value="">Semua Agen</option></select></div>
+        </div>
+
+        <div class="field">
+          <label for="kotaSelect">Kota</label>
+          <div class="select-wrap"><select id="kotaSelect"><option value="">Semua Kota</option></select></div>
+        </div>
+
+        <div class="field">
+          <label for="kecamatanSelect">Kecamatan</label>
+          <div class="select-wrap"><select id="kecamatanSelect"><option value="">Semua Kecamatan</option></select></div>
+        </div>
+
+        <div class="field">
+          <label for="statusSelect">Status</label>
+          <div class="select-wrap">
+            <select id="statusSelect">
+              <option value="">Semua</option>
+              <option value="Active" selected>Active</option>
+              <option value="Inactive">Inactive</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="issueSelect">Issue</label>
+          <div class="select-wrap">
+            <select id="issueSelect">
+              <option value="no_issue" selected>Tidak Terkendala</option>
+              <option value="">Semua (termasuk terkendala)</option>
+              <option value="kota_kosong">Kota Kosong</option>
+              <option value="koordinat_kosong">Koordinat Kosong</option>
+              <option value="duplikat">Duplikat</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="filter-actions">
+          <button class="btn primary" type="button" id="resetBtn">Reset</button>
+          <button class="btn" type="button" id="exportBtn">📥 Export</button>
+        </div>
+      </div>
+
+      <div class="issues-panel">
+        <button class="issues-toggle" type="button" id="issuesToggle" aria-expanded="false">
+          <span>Data Terkendala</span>
+          <span class="chevron">▼</span>
+        </button>
+        <div class="issues-body" id="issuesBody">
+          <div class="issue-note">Data terkendala tidak ditampilkan di peta. Gunakan filter Issue untuk melihatnya.</div>
+          <div class="issue-summary" id="issueSummary">
+            <div class="empty">Memuat issue...</div>
+          </div>
+          <div class="agen-issues" id="agenIssues"></div>
+        </div>
+      </div>
+    </aside>
+
+    <section class="map-panel" aria-label="Peta pangkalan">
+      <div class="map-container">
+        <div id="map"></div>
+        <div class="map-status" id="mapStatus"></div>
+        <div class="legend" aria-label="Legenda peta">
+          <div class="legend-title">Legenda</div>
+          <div class="legend-row"><span class="dot blue"></span><span>Normal</span></div>
+          <div class="legend-row"><span class="dot red"></span><span>Kota Kosong</span></div>
+          <div class="legend-row"><span class="dot orange"></span><span>Koordinat Kosong</span></div>
+          <div class="legend-row"><span class="dot purple"></span><span>Duplikat</span></div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="modal" id="detailModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="dialog">
+    <div class="dialog-head">
+      <h2 id="modalTitle">Detail Issue</h2>
+      <button class="close" id="modalClose" type="button" aria-label="Tutup">&times;</button>
+    </div>
+    <div class="dialog-body" id="modalBody"></div>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+const state = {
+  map:null,
+  cluster:null,
+  heatmap:null,
+  view:"markers",
+  data:[],
+  stats:null,
+  issues:null,
+  debounceTimer:null
+};
+
+const $ = id => document.getElementById(id);
+const fmt = value => Number(value || 0).toLocaleString("id-ID");
+const esc = value => String(value ?? "").replace(/[&<>"']/g, char => ({
+  "&":"&amp;",
+  "<":"&lt;",
+  ">":"&gt;",
+  "\"":"&quot;",
+  "'":"&#39;"
+}[char]));
+
+function showStatus(message, tone){
+  const node = $("mapStatus");
+  node.textContent = message || "";
+  node.className = "map-status" + (message ? " show" : "");
+  node.style.color = tone === "error" ? "var(--red2)" : "var(--muted)";
+}
+
+async function fetchJson(url){
+  try{
+    const response = await fetch(url, {cache:"no-store"});
+    if(!response.ok){
+      throw new Error("HTTP " + response.status);
+    }
+    return await response.json();
+  }catch(error){
+    console.error("API error:", url, error);
+    throw error;
+  }
+}
+
+function initMap(){
+  if(!window.L){
+    showStatus("Leaflet gagal dimuat. Periksa koneksi CDN.", "error");
+    return;
+  }
+  state.map = L.map("map", {
+    center:[-0.05,109.34],
+    zoom:9,
+    zoomControl:true,
+    scrollWheelZoom:true
+  });
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom:19,
+    attribution:"&copy; OpenStreetMap contributors"
+  }).addTo(state.map);
+  state.cluster = L.markerClusterGroup({
+    chunkedLoading:true,
+    spiderfyOnMaxZoom:true,
+    showCoverageOnHover:false
+  });
+  state.map.addLayer(state.cluster);
+  setTimeout(() => state.map.invalidateSize(), 80);
+}
+
+function optionHtml(value){
+  return `<option value="${esc(value)}">${esc(value)}</option>`;
+}
+
+function fillSelect(id, firstLabel, values, selectedValue){
+  const unique = [...new Set((values || []).filter(Boolean).map(String))].sort((a,b) => a.localeCompare(b, "id"));
+  const select = $(id);
+  select.innerHTML = `<option value="">${esc(firstLabel)}</option>` + unique.map(optionHtml).join("");
+  if(selectedValue !== undefined){
+    select.value = selectedValue;
+  }
+}
+
+function setStats(stats){
+  $("statTotal").textContent = fmt(stats.total);
+  $("statActive").textContent = fmt(stats.active);
+  $("statInactive").textContent = fmt(stats.inactive);
+  $("statIssue").textContent = fmt((stats.kota_kosong || 0) + (stats.koordinat_kosong || 0) + (stats.duplikat || 0));
+}
+
+async function loadStats(){
+  try{
+    const stats = await fetchJson("/api/pangkalan/stats");
+    state.stats = stats;
+    setStats(stats);
+    fillSelect("agenSelect", "Semua Agen", (stats.agen_list || []).map(item => item.nama_agen));
+    fillSelect("kotaSelect", "Semua Kota", stats.kota_list || []);
+    fillSelect("kecamatanSelect", "Semua Kecamatan", stats.kecamatan_list || []);
+  }catch(error){
+    showStatus("Gagal memuat statistik pangkalan: " + error.message, "error");
+  }
+}
+
+function issueTotalFromSummary(summary){
+  return (summary.kota_kosong_count || 0) + (summary.koordinat_kosong_count || 0) + (summary.duplicate_registrasi_count || 0);
+}
+
+async function loadIssues(){
+  try{
+    const issues = await fetchJson("/api/pangkalan/check?issue_type=all");
+    state.issues = issues;
+    const summary = issues.summary || {};
+    $("statIssue").textContent = fmt(issueTotalFromSummary(summary));
+    $("issueSummary").innerHTML = `
+      <div class="issue-card red" data-issue="kota_kosong"><div class="n">${fmt(summary.kota_kosong_count)}</div><div class="l">Kota Kosong</div></div>
+      <div class="issue-card orange" data-issue="koordinat_kosong"><div class="n">${fmt(summary.koordinat_kosong_count)}</div><div class="l">Koordinat Kosong</div></div>
+      <div class="issue-card purple" data-issue="duplikat"><div class="n">${fmt(summary.duplicate_registrasi_count)}</div><div class="l">Duplikat</div></div>
+    `;
+    $("issueSummary").querySelectorAll("[data-issue]").forEach(card => {
+      card.addEventListener("click", () => {
+        $("issueSelect").value = card.dataset.issue;
+        loadData();
+      });
+    });
+    renderAgenIssues(issues.per_agen || []);
+  }catch(error){
+    $("issueSummary").innerHTML = `<div class="error">Gagal memuat issue: ${esc(error.message)}</div>`;
+  }
+}
+
+function renderAgenIssues(rows){
+  if(!rows.length){
+    $("agenIssues").innerHTML = `<div class="empty">Tidak ada issue per agen.</div>`;
+    return;
+  }
+  $("agenIssues").innerHTML = `
+    <h3>Issue per Agen</h3>
+    ${rows.slice(0,80).map(row => `
+      <div class="agen-row" data-agen="${esc(row.nama_agen)}">
+        <span class="agen-name">${esc(row.nama_agen || "-")}</span>
+        <span class="badges">
+          ${row.kota_kosong ? `<span class="badge red">${fmt(row.kota_kosong)}</span>` : ""}
+          ${row.koordinat_kosong ? `<span class="badge orange">${fmt(row.koordinat_kosong)}</span>` : ""}
+          ${row.duplikat ? `<span class="badge purple">${fmt(row.duplikat)}</span>` : ""}
+        </span>
+      </div>
+    `).join("")}
+  `;
+  $("agenIssues").querySelectorAll(".agen-row").forEach(row => {
+    row.addEventListener("click", () => openAgenModal(row.dataset.agen));
+  });
+}
+
+function buildParams(includeLimit){
+  const params = new URLSearchParams();
+  const search = $("searchInput").value.trim();
+  if(search) params.set("search", search);
+  if($("agenSelect").value) params.set("agen", $("agenSelect").value);
+  if($("kotaSelect").value) params.set("kota", $("kotaSelect").value);
+  if($("kecamatanSelect").value) params.set("kecamatan", $("kecamatanSelect").value);
+  if($("statusSelect").value) params.set("status", $("statusSelect").value);
+  params.set("issue", $("issueSelect").value);
+  if(includeLimit) params.set("limit", "10000");
+  return params;
+}
+
+async function loadData(){
+  if(!state.map) return;
+  $("filterCount").textContent = "-";
+  showStatus("Memuat data pangkalan...");
+  try{
+    const params = buildParams(true);
+    const result = await fetchJson("/api/pangkalan/list?" + params.toString());
+    state.data = result.data || [];
+    $("filterCount").textContent = fmt(result.filtered ?? state.data.length);
+    rebuildMapLayers();
+    if(!state.data.length){
+      showStatus("Tidak ada data untuk filter ini.");
+    }else{
+      showStatus("");
+    }
+    hydrateSelectsFromData();
+  }catch(error){
+    state.data = [];
+    clearMapLayers();
+    $("filterCount").textContent = "0";
+    showStatus("Gagal memuat daftar pangkalan: " + error.message, "error");
+  }
+}
+
+function hydrateSelectsFromData(){
+  if(state.stats) return;
+  fillSelect("agenSelect", "Semua Agen", state.data.map(row => row.nama_agen), $("agenSelect").value);
+  fillSelect("kotaSelect", "Semua Kota", state.data.map(row => row.kota), $("kotaSelect").value);
+  fillSelect("kecamatanSelect", "Semua Kecamatan", state.data.map(row => row.kecamatan), $("kecamatanSelect").value);
+}
+
+function clearMapLayers(){
+  if(state.cluster) state.cluster.clearLayers();
+  if(state.heatmap){
+    state.map.removeLayer(state.heatmap);
+    state.heatmap = null;
+  }
+}
+
+function rebuildMapLayers(){
+  clearMapLayers();
+  if(state.view === "heatmap"){
+    renderHeatmap();
+  }else{
+    renderMarkers();
+  }
+}
+
+function validLatLng(row){
+  const lat = Number(row.latitude);
+  const lng = Number(row.longitude);
+  if(!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  if(lat === 0 || lng === 0) return null;
+  return [lat, lng];
+}
+
+function issueColor(issue){
+  if(issue === "kota_kosong") return "red";
+  if(issue === "koordinat_kosong") return "orange";
+  if(issue === "duplikat") return "purple";
+  return "blue";
+}
+
+function popupHtml(row){
+  return `
+    <div class="popup-title">${esc(row.nama_pangkalan || "-")}</div>
+    <div class="popup-row"><span class="k">Agen</span><span class="v">${esc(row.nama_agen || "-")}</span></div>
+    <div class="popup-row"><span class="k">Alamat</span><span class="v">${esc(row.alamat || "-")}</span></div>
+    <div class="popup-row"><span class="k">Kota</span><span class="v">${esc(row.kota || "-")}</span></div>
+    <div class="popup-row"><span class="k">Status</span><span class="v">${esc(row.status || "-")}</span></div>
+    <div class="popup-row"><span class="k">Kontak</span><span class="v">${esc(row.no_hp_pemilik || row.kontak || "-")}</span></div>
+    <div class="popup-row"><span class="k">Qty Kontrak</span><span class="v">${fmt(row.qty_kontrak)}</span></div>
+  `;
+}
+
+function renderMarkers(){
+  const bounds = [];
+  let count = 0;
+  state.data.forEach(row => {
+    const latLng = validLatLng(row);
+    if(!latLng) return;
+    const color = issueColor(row.issue);
+    const icon = L.divIcon({
+      className:"map-marker",
+      html:`<span class="dot ${color}"></span>`,
+      iconSize:[18,18],
+      iconAnchor:[9,9],
+      popupAnchor:[0,-9]
+    });
+    const marker = L.marker(latLng, {icon}).bindPopup(popupHtml(row));
+    state.cluster.addLayer(marker);
+    bounds.push(latLng);
+    count += 1;
+  });
+  if(!state.map.hasLayer(state.cluster)){
+    state.map.addLayer(state.cluster);
+  }
+  fitToBounds(bounds);
+  if(state.data.length && count === 0){
+    showStatus("Data ditemukan, tetapi tidak ada koordinat valid untuk ditampilkan.", "error");
+  }
+}
+
+function renderHeatmap(){
+  const points = [];
+  state.data.forEach(row => {
+    const latLng = validLatLng(row);
+    if(!latLng) return;
+    const qty = Number(row.qty_kontrak);
+    const intensity = Number.isFinite(qty) && qty > 0 ? Math.min(1, Math.max(.25, qty / 1000)) : .45;
+    points.push([latLng[0], latLng[1], intensity]);
+  });
+  if(!points.length){
+    if(state.data.length) showStatus("Data ditemukan, tetapi tidak ada koordinat valid untuk heatmap.", "error");
+    return;
+  }
+  if(!L.heatLayer){
+    showStatus("Plugin heatmap gagal dimuat dari CDN.", "error");
+    return;
+  }
+  state.heatmap = L.heatLayer(points, {
+    radius:24,
+    blur:16,
+    maxZoom:11,
+    gradient:{0.25:"#3b82f6",0.45:"#06b6d4",0.62:"#10b981",0.78:"#f59e0b",1:"#ef4444"}
+  }).addTo(state.map);
+  fitToBounds(points.map(point => [point[0], point[1]]));
+}
+
+function fitToBounds(bounds){
+  if(bounds.length){
+    state.map.fitBounds(bounds, {padding:[46,46], maxZoom:12});
+  }else{
+    state.map.setView([-0.05,109.34], 9);
+  }
+  setTimeout(() => state.map.invalidateSize(), 80);
+}
+
+function switchView(view){
+  state.view = view;
+  document.querySelectorAll(".view-btn").forEach(button => {
+    button.classList.toggle("active", button.dataset.view === view);
+  });
+  if(view === "heatmap" && state.map.hasLayer(state.cluster)){
+    state.map.removeLayer(state.cluster);
+  }
+  if(view === "markers" && state.heatmap){
+    state.map.removeLayer(state.heatmap);
+    state.heatmap = null;
+  }
+  rebuildMapLayers();
+}
+
+function resetFilters(){
+  $("searchInput").value = "";
+  $("agenSelect").value = "";
+  $("kotaSelect").value = "";
+  $("kecamatanSelect").value = "";
+  $("statusSelect").value = "Active";
+  $("issueSelect").value = "no_issue";
+  loadData();
+}
+
+function exportData(){
+  const params = buildParams(false);
+  window.open("/api/pangkalan/export?" + params.toString(), "_blank", "noopener");
+}
+
+function openAgenModal(agen){
+  const detail = (state.issues && state.issues.detail ? state.issues.detail : []).filter(row => (row.nama_agen || "-") === agen);
+  $("modalTitle").textContent = "Data Terkendala - " + (agen || "-");
+  if(!detail.length){
+    $("modalBody").innerHTML = `<div class="empty">Tidak ada detail issue untuk agen ini.</div>`;
+  }else{
+    $("modalBody").innerHTML = detail.map(row => `
+      <div class="issue-item">
+        <span class="badge ${issueColor(row.issue_type)}">${esc(labelIssue(row.issue_type))}</span>
+        <div class="issue-main">
+          <strong>${esc(row.nama_pangkalan || "-")}</strong>
+          <span>${esc(row.id_registrasi || "-")} · ${esc(row.kota || "Kota kosong")} · ${esc(row.status || "-")}</span>
+        </div>
+        <span>${esc(row.latitude || "-")}, ${esc(row.longitude || "-")}</span>
+      </div>
+    `).join("");
+  }
+  $("detailModal").classList.add("open");
+}
+
+function labelIssue(issue){
+  if(issue === "kota_kosong") return "Kota Kosong";
+  if(issue === "koordinat_kosong") return "Koordinat Kosong";
+  if(issue === "duplikat") return "Duplikat";
+  return "Normal";
+}
+
+function bindEvents(){
+  ["agenSelect","kotaSelect","kecamatanSelect","statusSelect","issueSelect"].forEach(id => {
+    $(id).addEventListener("change", loadData);
+  });
+  $("searchInput").addEventListener("input", () => {
+    clearTimeout(state.debounceTimer);
+    state.debounceTimer = setTimeout(loadData, 180);
+  });
+  $("resetBtn").addEventListener("click", resetFilters);
+  $("exportBtn").addEventListener("click", exportData);
+  document.querySelectorAll(".view-btn").forEach(button => {
+    button.addEventListener("click", () => switchView(button.dataset.view));
+  });
+  $("issuesToggle").addEventListener("click", () => {
+    const body = $("issuesBody");
+    const open = !body.classList.contains("open");
+    body.classList.toggle("open", open);
+    $("issuesToggle").classList.toggle("open", open);
+    $("issuesToggle").setAttribute("aria-expanded", String(open));
+  });
+  $("modalClose").addEventListener("click", () => $("detailModal").classList.remove("open"));
+  $("detailModal").addEventListener("click", event => {
+    if(event.target === $("detailModal")) $("detailModal").classList.remove("open");
+  });
+  window.addEventListener("resize", () => {
+    if(state.map) state.map.invalidateSize();
+  });
+}
+
+async function boot(){
+  bindEvents();
+  initMap();
+  if(!state.map) return;
+  try{
+    await loadStats();
+    await loadIssues();
+    await loadData();
+  }catch(error){
+    showStatus("Halaman gagal dimuat: " + error.message, "error");
+  }
+}
+
+if(document.readyState === "loading"){
+  document.addEventListener("DOMContentLoaded", boot);
+}else{
+  boot();
+}
+</script>
+</body>
+</html>

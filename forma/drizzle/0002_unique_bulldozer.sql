@@ -1,0 +1,1 @@
+ALTER TABLE `forms` ADD `compress_media` integer DEFAULT 1 NOT NULL;

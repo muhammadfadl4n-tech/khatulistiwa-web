@@ -1,0 +1,34 @@
+body {
+    min-height: 100vh;
+}
+
+.home-panel {
+    max-width: 760px;
+    padding: 4rem 1rem;
+}
+
+.form-shell {
+    max-width: 900px;
+}
+
+.login-shell {
+    max-width: 420px;
+}
+
+.doc-thumb {
+    width: 76px;
+    height: 58px;
+    object-fit: cover;
+    border-radius: 6px;
+    border: 1px solid #dee2e6;
+    background: #f8f9fa;
+}
+
+.table th {
+    white-space: nowrap;
+    font-size: 0.875rem;
+}
+
+.table td {
+    font-size: 0.925rem;
+}

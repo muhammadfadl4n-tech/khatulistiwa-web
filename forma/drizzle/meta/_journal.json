@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1783960948850,
+      "tag": "0000_open_jamie_braddock",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1783962113317,
+      "tag": "0001_third_nocturne",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1783963121842,
+      "tag": "0002_unique_bulldozer",
+      "breakpoints": true
+    }
+  ]
+}

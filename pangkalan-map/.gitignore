@@ -1,0 +1,1 @@
+*.pyc\n__pycache__/\nnode_modules/\n*.db

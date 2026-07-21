@@ -1,0 +1,1239 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Dashboard LPG — Kalimantan Barat</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg: #0a0e17;
+  --card: #0f172a;
+  --card2: #111d2e;
+  --line: rgba(255, 255, 255, .06);
+  --text: #e8edf5;
+  --muted: #7a8ba8;
+  --tx: #e8edf5;
+  --dim: #7a8ba8;
+  --cyan: #4ae0ff;
+  --blue: #1e90ff;
+  --blue-2: #60a5fa;
+  --green: #2e7d32;
+  --greenL: #66bb6a;
+  --pink: #c2185b;
+  --pinkL: #f06292;
+  --orange: #e65100;
+  --orangeL: #ff8a50;
+  --purple: #6a1b9a;
+  --purpleL: #ab47bc;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  font-family: Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+.hdr {
+  background: linear-gradient(145deg, #0c1628, #14223d);
+  padding: 12px 16px 8px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  border-bottom: 1px solid var(--line);
+}
+.h-in { max-width: 1440px; margin: 0 auto; }
+.nav{display:flex;align-items:center;gap:16px;margin-bottom:18px}
+.nav .brand{font-weight:800;letter-spacing:.2px;margin-right:auto}
+.nav a{color:var(--muted);text-decoration:none;font-size:14px;font-weight:650}
+.nav a:hover,.nav a.active{color:var(--blue-2)}
+.h-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+.brand { display: flex; align-items: center; gap: 10px; }
+.bi {
+  width: 32px; height: 32px;
+  background: linear-gradient(135deg, rgba(74,224,255,.2), rgba(30,144,255,.05));
+  border-radius: 8px; display: flex; align-items: center; justify-content: center;
+  font-size: 16px; border: 1px solid rgba(74,224,255,.15);
+}
+.brand h1 {
+  font-size: 16px; font-weight: 800; letter-spacing: -.3px;
+  background: linear-gradient(135deg, var(--text), var(--muted));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.brand .sub { font-size: 10px; color: var(--muted); }
+.badge {
+  font-size: 10px; color: var(--muted); background: rgba(255,255,255,.06);
+  padding: 4px 10px; border-radius: 6px; white-space: nowrap;
+}
+.tabs {
+  display: flex; gap: 2px; overflow-x: auto; white-space: nowrap;
+  border-bottom: 1px solid var(--line); scrollbar-width: thin;
+}
+.tabs::-webkit-scrollbar { height: 4px; }
+.tabs::-webkit-scrollbar-thumb { background: rgba(255,255,255,.12); border-radius: 2px; }
+.tab {
+  padding: 8px 14px; border: none; border-radius: 6px 6px 0 0;
+  font: 600 12px Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif; background: transparent; color: var(--muted);
+  cursor: pointer; transition: .2s; flex-shrink: 0;
+}
+.tab:hover { color: var(--text); background: rgba(255,255,255,.03); }
+.tab.act { color: #fff; background: rgba(255,255,255,.05); }
+.tab.act::after {
+  content: ''; display: block; height: 2px;
+  background: linear-gradient(90deg, var(--cyan), var(--blue)); border-radius: 1px; margin-top: 4px;
+}
+.fbar {
+  display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; align-items: center;
+}
+.type-group { display: flex; gap: 4px; flex-wrap: wrap; }
+.type-btn {
+  padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px;
+  font: 500 11px Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif; background: rgba(255,255,255,.04); color: var(--muted);
+  cursor: pointer; transition: .2s;
+}
+.type-btn:hover { background: rgba(255,255,255,.08); color: var(--text); }
+.type-btn.act { background: rgba(74,224,255,.12); color: var(--cyan); border-color: rgba(74,224,255,.25); }
+.fbar select {
+  padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px;
+  font: 400 11px Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif; background: rgba(255,255,255,.06); color: var(--text);
+  outline: none; cursor: pointer; min-width: 110px;
+}
+.fbar select:hover { background: rgba(255,255,255,.1); }
+.fbar select option { background: var(--bg); color: var(--text); }
+.con { max-width: 1440px; margin: 0 auto; padding: 12px 16px; }
+#app { min-height: 300px; }
+.loading {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 80px 20px; text-align: center;
+}
+.spin {
+  width: 28px; height: 28px; border-radius: 50%;
+  border: 3px solid rgba(255,255,255,.05); border-top-color: rgba(74,224,255,.5);
+  animation: spin .8s linear infinite; margin-bottom: 12px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading p { color: var(--muted); font-size: 14px; }
+.error { text-align: center; padding: 60px 20px; color: var(--muted); }
+.error strong { display: block; font-size: 18px; color: #ff6b6b; margin-bottom: 8px; }
+.error .btn {
+  margin-top: 16px; padding: 8px 20px; border: none; border-radius: 8px;
+  background: linear-gradient(135deg, var(--cyan), var(--blue)); color: #05101a;
+  font: 700 12px Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif; cursor: pointer;
+}
+.g6 { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-bottom: 12px; }
+.g5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 12px; }
+.g4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 12px; }
+.g3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 12px; }
+.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+.card {
+  background: linear-gradient(145deg, var(--card2), var(--card));
+  border: 1px solid var(--line); border-radius: 10px; padding: 14px; overflow: hidden;
+  transition: transform .15s, box-shadow .15s;
+}
+.card:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(0,0,0,.18); }
+.card .v { font-size: 22px; font-weight: 800; letter-spacing: -.3px; margin-bottom: 2px; }
+.card .l { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; font-weight: 600; }
+.card .sc { text-align: center; padding: 6px 0; }
+.card .ch { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+.card .ct { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+.cw { position: relative; height: 260px; }
+.cw.sm { height: 200px; }
+.cw.lg { height: 320px; }
+.table-wrap { overflow-x: auto; }
+table.data {
+  width: 100%; border-collapse: collapse; font-size: 12px;
+}
+table.data th, table.data td { padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,.05); }
+table.data th {
+  text-align: left; color: var(--muted); font-size: 9px; text-transform: uppercase; letter-spacing: .5px;
+  position: sticky; top: 0; background: var(--card2); white-space: nowrap;
+}
+table.data td { white-space: nowrap; }
+table.data td.num, table.data th.num { text-align: right; font-family: 'SFMono-Regular', Consolas, monospace; }
+table.data tbody tr:hover { background: rgba(255,255,255,.03); }
+.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.kpi { display: flex; align-items: center; gap: 10px; }
+.kpi .ic { width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; background: rgba(255,255,255,.05); }
+.kpi .kv { font-size: 16px; font-weight: 800; }
+.kpi .kl { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; }
+.search-box {
+  padding: 7px 12px; border: 1px solid var(--line); border-radius: 8px;
+  background: rgba(255,255,255,.05); color: var(--text); font-size: 12px; outline: none; min-width: 220px;
+}
+.search-box::placeholder { color: var(--muted); }
+.empty { text-align: center; padding: 40px 20px; color: var(--muted); font-size: 13px; }
+.dot { display: inline-block; width: 7px; height: 7px; border-radius: 2px; margin-right: 6px; }
+.progress {
+  height: 4px; background: rgba(255,255,255,.08); border-radius: 2px; overflow: hidden; min-width: 60px;
+}
+.progress > i { display: block; height: 100%; border-radius: 2px; background: linear-gradient(90deg, var(--cyan), var(--blue)); }
+.status {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 58px; padding: 3px 8px; border-radius: 6px;
+  font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .3px;
+}
+.status.green { color: var(--greenL); background: rgba(102,187,106,.12); }
+.status.yellow { color: #ffca28; background: rgba(255,202,40,.12); }
+.status.orange { color: var(--orangeL); background: rgba(255,138,80,.12); }
+.status.red { color: #ef5350; background: rgba(239,83,80,.12); }
+.mini-btn {
+  padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px;
+  background: rgba(255,255,255,.05); color: var(--text);
+  font: 700 10px Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif; cursor: pointer;
+}
+.mini-btn:hover { background: rgba(255,255,255,.09); }
+.alert {
+  margin-bottom: 12px; padding: 12px 14px; border: 1px solid rgba(239,83,80,.25);
+  border-radius: 10px; background: rgba(239,83,80,.08); color: #ffb4b4;
+  font-size: 13px; font-weight: 700;
+}
+.detail-row td { background: rgba(255,255,255,.02); white-space: normal; }
+.detail-list { display: grid; gap: 6px; color: var(--muted); font-size: 11px; }
+.detail-list b { color: var(--text); }
+@media(max-width: 1100px) {
+  .g6 { grid-template-columns: repeat(3, 1fr); }
+  .g5 { grid-template-columns: repeat(3, 1fr); }
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media(max-width: 900px) {
+  .g6 { grid-template-columns: repeat(3, 1fr); }
+  .g4 { grid-template-columns: repeat(2, 1fr); }
+  .g3 { grid-template-columns: repeat(2, 1fr); }
+  .g2 { grid-template-columns: 1fr; }
+  .cw { height: 220px; }
+  .cw.lg { height: 260px; }
+}
+@media(max-width: 600px) {
+  .nav{gap:8px;overflow-x:auto;margin-bottom:10px;padding-bottom:0}
+  .nav a{font-size:12px;white-space:nowrap}
+  .nav .brand{font-size:14px}
+  .g6, .g5, .g4, .g3 { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .card { padding: 12px; }
+  .card .v { font-size: 17px; }
+  .card .l { font-size: 9px; }
+  .con { padding: 10px 12px; }
+  .tab { font-size: 11px; padding: 7px 10px; }
+  .fbar { gap: 6px; }
+  .type-btn { font-size: 10px; padding: 5px 8px; }
+  .fbar select { min-width: 95px; font-size: 10px; }
+  .kpi-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .search-box { width: 100%; min-width: 0; }
+  table.data { font-size: 11px; }
+  table.data th, table.data td { padding: 6px 8px; }
+}
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <div class="h-in">
+    <nav class="nav">
+      <div class="brand">Portal 5555</div>
+      <a href="/">🏠 Beranda</a>
+      <a class="active" href="/lpg">⛽ LPG</a>
+      <a href="/agen">🏢 Agen</a>
+      <a href="/pangkalan">🗺️ Pangkalan</a>
+    </nav>
+    <div class="h-top">
+      <div class="brand">
+        <div class="bi">⛽</div>
+        <div><h1>Dashboard LPG</h1><div class="sub">Kalimantan Barat</div></div>
+      </div>
+      <div class="badge" id="updateInfo">—</div>
+    </div>
+    <nav class="tabs" id="tabNav">
+      <button class="tab act" data-tab="dashboard">📊 Dashboard</button>
+      <button class="tab" data-tab="wilayah">🗺️ Wilayah</button>
+      <button class="tab" data-tab="agen">🏢 Agen</button>
+      <button class="tab" data-tab="spbe">🏭 SPBE</button>
+      <button class="tab" data-tab="banding">📈 Perbandingan</button>
+      <button class="tab" data-tab="performa">🎯 Performa</button>
+      <button class="tab" data-tab="rekap">📊 Rekap</button>
+      <button class="tab" data-tab="pangkalan">🔍 Pangkalan</button>
+    </nav>
+    <div class="fbar">
+      <select id="filterYear"><option value="all">Semua Tahun</option></select>
+      <select id="filterMonth"><option value="all">Semua Bulan</option></select>
+      <select id="filterDistrict"><option value="all">Semua Wilayah</option></select>
+    </div>
+  </div>
+</header>
+
+<main class="con" id="app">
+  <div class="loading"><div class="spin"></div><p>Memuat data...</p></div>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+const MS = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+const COL = { all: '#4ae0ff', PSO: '#66bb6a', NPSO_RT: '#f06292', NPSO_NRT: '#ff8a50' };
+const TYPE_LABEL = { all: 'Semua', PSO: 'PSO', NPSO_RT: 'NPSO RT', NPSO_NRT: 'NPSO NRT' };
+
+let state = { tab: 'dashboard', type: 'all', year: 'all', month: 'all', district: 'all' };
+let charts = {};
+let filterData = { months: [], districts: [] };
+
+const fmt = n => (n == null || isNaN(n)) ? '0' : Number(n).toLocaleString('id-ID');
+const fmt2 = n => (n == null || isNaN(n)) ? '0,00' : Number(n).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const pct = (a, b) => b ? ((a / b) * 100).toFixed(1) : '0.0';
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const parseYM = ym => { const [mm, yy] = (ym || '').split('.'); return { mm, yy }; };
+const monthCount = () => {
+  if (state.month !== 'all') return 1;
+  const months = filterData.months || [];
+  if (state.year !== 'all') return months.filter(m => m.endsWith('.' + state.year)).length || 1;
+  return months.length || 1;
+};
+
+function showLoading() {
+  $('app').innerHTML = '<div class="loading"><div class="spin"></div><p>Memuat data...</p></div>';
+}
+function showError(msg) {
+  const safe = String(msg || 'Terjadi kesalahan').replace(/</g, '&lt;');
+  $('app').innerHTML = `<div class="error"><strong>⚠️ Gagal memuat data</strong><p>${safe}</p><button class="btn" onclick="loadActiveTab()">Coba Lagi</button></div>`;
+}
+
+function qs() {
+  let q = `type=${encodeURIComponent(state.type)}`;
+  if (state.year !== 'all') q += `&year=${encodeURIComponent(state.year)}`;
+  if (state.month !== 'all') q += `&month=${encodeURIComponent(state.month)}`;
+  if (state.district !== 'all') q += `&district=${encodeURIComponent(state.district)}`;
+  return q;
+}
+
+async function api(endpoint) {
+  const base = endpoint.startsWith('/') ? endpoint : `/api/lpg/${endpoint}`;
+  const url = `${base}${base.includes('?') ? '&' : '?'}${qs()}`;
+  try {
+    const r = await fetch(url, { cache: 'no-store' });
+    if (!r.ok) throw new Error(`HTTP ${r.status} di ${endpoint}`);
+    const data = await r.json();
+    if (data && data.error) throw new Error(data.error);
+    return data || {};
+  } catch (err) {
+    console.error('API error', endpoint, err);
+    throw err;
+  }
+}
+
+async function safeApi(endpoint) {
+  try { return await api(endpoint); } catch (e) { return {}; }
+}
+
+/* ---------- Tabs & filters ---------- */
+$('tabNav').addEventListener('click', e => {
+  const btn = e.target.closest('.tab');
+  if (!btn) return;
+  document.querySelectorAll('.tab').forEach(b => b.classList.remove('act'));
+  btn.classList.add('act');
+  state.tab = btn.dataset.tab;
+  loadActiveTab();
+});
+
+$('filterYear').addEventListener('change', e => { state.year = e.target.value; loadActiveTab(); });
+$('filterMonth').addEventListener('change', e => { state.month = e.target.value; loadActiveTab(); });
+$('filterDistrict').addEventListener('change', e => { state.district = e.target.value; loadActiveTab(); });
+
+async function initFilters() {
+  try {
+    const summary = await api('summary');
+    filterData.months = summary.months || [];
+    filterData.districts = summary.districts || [];
+
+    const yrs = new Set();
+    const monMap = new Map();
+    (summary.months || []).forEach(m => {
+      const [mm, yy] = m.split('.');
+      if (yy) yrs.add(yy);
+      if (mm) monMap.set(mm, MS[parseInt(mm, 10) - 1] || mm);
+    });
+
+    const curYear = $('filterYear').value;
+    $('filterYear').innerHTML = '<option value="all">Semua Tahun</option>' +
+      [...yrs].sort().map(y => `<option value="${y}">${y}</option>`).join('');
+    $('filterYear').value = yrs.has(curYear) ? curYear : state.year;
+
+    const curMonth = $('filterMonth').value;
+    $('filterMonth').innerHTML = '<option value="all">Semua Bulan</option>' +
+      [...monMap.entries()].sort((a, b) => parseInt(a[0], 10) - parseInt(b[0], 10))
+        .map(([k, v]) => `<option value="${k}">${v}</option>`).join('');
+    $('filterMonth').value = monMap.has(curMonth) ? curMonth : state.month;
+
+    const curDist = $('filterDistrict').value;
+    $('filterDistrict').innerHTML = '<option value="all">Semua Wilayah</option>' +
+      (summary.districts || []).sort().map(d => `<option value="${d}">${d}</option>`).join('');
+    $('filterDistrict').value = (summary.districts || []).includes(curDist) ? curDist : state.district;
+
+    if (summary.last_data_date) $('updateInfo').textContent = '📅 Data s.d: ' + summary.last_data_date;
+  } catch (err) {
+    console.error('initFilters error', err);
+    throw err;
+  }
+}
+
+async function loadActiveTab() {
+  showLoading();
+  try {
+    await initFilters();
+    if (state.tab === 'dashboard') await renderDashboard();
+    else if (state.tab === 'wilayah') await renderWilayah();
+    else if (state.tab === 'agen') await renderAgen();
+    else if (state.tab === 'spbe') await renderSpbe();
+    else if (state.tab === 'banding') await renderBanding();
+    else if (state.tab === 'performa') await renderPerforma();
+    else if (state.tab === 'rekap') await renderRekap();
+    else if (state.tab === 'pangkalan') await renderPangkalan();
+    else await renderDashboard();
+  } catch (err) {
+    console.error('loadActiveTab error', err);
+    showError(err.message || 'Gagal memuat tab');
+  }
+}
+
+/* ---------- Dashboard ---------- */
+async function renderDashboard() {
+  try {
+    const [summary, monthly] = await Promise.all([
+      api('summary').catch(() => { throw new Error('gagal memuat summary'); }),
+      api('monthly').catch(() => { throw new Error('gagal memuat monthly'); })
+    ]);
+
+    const months = Object.keys(monthly || {}).sort((a, b) => {
+      const [m1, y1] = a.split('.');
+      const [m2, y2] = b.split('.');
+      return y1 !== y2 ? parseInt(y1) - parseInt(y2) : parseInt(m1) - parseInt(m2);
+    });
+    const totalMT = months.reduce((a, m) => a + (monthly[m].mt || 0), 0);
+    const totalTB = months.reduce((a, m) => a + (monthly[m].tb || 0), 0);
+    const avgMT = months.length ? totalMT / months.length : 0;
+
+    const segMap = {};
+    (summary.segments || []).forEach(s => { segMap[s.name] = s; });
+    const pso = segMap['PSO'] || {};
+    const rt = segMap['NPSO_RT'] || {};
+    const nrt = segMap['NPSO_NRT'] || {};
+
+    $('app').innerHTML = `
+      <div class="g6">
+        <div class="card" style="border-top:3px solid var(--greenL)"><div class="sc"><div class="v" style="color:var(--greenL)">${fmt(pso.tb || 0)}</div><div class="l">Total Tabung PSO</div></div></div>
+        <div class="card" style="border-top:3px solid var(--blue)"><div class="sc"><div class="v" style="color:var(--blue)">${fmt2(avgMT)}</div><div class="l">Rata-rata MT/bln</div></div></div>
+        <div class="card" style="border-top:3px solid var(--pinkL)"><div class="sc"><div class="v" style="color:var(--pinkL)">${fmt2(rt.mt || 0)}</div><div class="l">NPSO RT (MT)</div></div></div>
+        <div class="card" style="border-top:3px solid var(--orangeL)"><div class="sc"><div class="v" style="color:var(--orangeL)">${fmt2(nrt.mt || 0)}</div><div class="l">NPSO NRT (MT)</div></div></div>
+        <div class="card" style="border-top:3px solid var(--cyan)"><div class="sc"><div class="v" style="color:var(--cyan)">${fmt2(totalMT)}</div><div class="l">Total Tonase (MT)</div></div></div>
+        <div class="card" style="border-top:3px solid var(--purpleL)"><div class="sc"><div class="v" style="color:var(--purpleL);font-size:18px">${fmt((summary.pso_agents||0) + (summary.npso_agents||0))}</div><div class="l">Agen Aktif · <span style="color:var(--greenL)">PSO ${summary.pso_agents||0}</span> · <span style="color:var(--pinkL)">NPSO ${summary.npso_agents||0}</span></div></div></div>
+      </div>
+
+      <div class="g2">
+        <div class="card"><div class="ch"><span class="ct">📈 Tren Bulanan (MT)</span></div><div class="cw"><canvas id="cTrend"></canvas></div></div>
+        <div class="card"><div class="ch"><span class="ct">🍩 Proporsi Segmen</span></div><div class="cw sm"><canvas id="cDonut"></canvas></div></div>
+      </div>
+
+      <div class="card" style="margin-bottom:12px">
+        <div class="ch"><span class="ct">🔑 KPI Utama</span></div>
+        <div class="kpi-grid">
+          <div class="kpi"><div class="ic" style="color:var(--cyan)">📦</div><div><div class="kv">${fmt(summary.total_rows || 0)}</div><div class="kl">Transaksi</div></div></div>
+          <div class="kpi"><div class="ic" style="color:var(--greenL)">🗺️</div><div><div class="kv">${summary.total_districts || 0}</div><div class="kl">Kab/Kota</div></div></div>
+          <div class="kpi"><div class="ic" style="color:var(--orangeL)">🏭</div><div><div class="kv">${summary.total_plants || 0}</div><div class="kl">SPBE</div></div></div>
+          <div class="kpi"><div class="ic" style="color:var(--pinkL)">⚖️</div><div><div class="kv">${fmt2(totalTB / (months.length || 1))}</div><div class="kl">Avg Tabung/bln</div></div></div>
+        </div>
+      </div>
+
+      <div class="g2">
+        <div class="card"><div class="ch"><span class="ct">🏆 Top 5 Agen (MT)</span></div><div id="topAgenWrap"></div></div>
+        <div class="card"><div class="ch"><span class="ct">📋 Realisasi Wilayah</span></div><div id="wilWrap"></div></div>
+      </div>
+    `;
+
+    // Trend chart
+    if ($('cTrend')) {
+      if (charts.trend) charts.trend.destroy();
+      charts.trend = new Chart($('cTrend'), {
+        type: 'line',
+        data: {
+          labels: months.map(m => { const [mm, yy] = m.split('.'); return (MS[parseInt(mm, 10) - 1] || mm) + " '" + (yy || '').slice(2); }),
+          datasets: [{
+            label: 'MT', data: months.map(m => monthly[m].mt || 0),
+            borderColor: COL[state.type] || COL.all, backgroundColor: (ctx) => {
+              const c = ctx.chart.ctx;
+              const g = c.createLinearGradient(0, 0, 0, 240);
+              g.addColorStop(0, hexToRgba(COL[state.type] || COL.all, 0.25));
+              g.addColorStop(1, hexToRgba(COL[state.type] || COL.all, 0));
+              return g;
+            },
+            borderWidth: 2, pointRadius: 3, pointBackgroundColor: '#0a0e17', pointBorderWidth: 2,
+            tension: .35, fill: true
+          }]
+        },
+        options: chartOptions('MT')
+      });
+    }
+
+    // Donut chart
+    if ($('cDonut')) {
+      if (charts.donut) charts.donut.destroy();
+      const ds = [
+        { l: 'PSO', v: pso.mt || 0, c: COL.PSO },
+        { l: 'NPSO RT', v: rt.mt || 0, c: COL.NPSO_RT },
+        { l: 'NPSO NRT', v: nrt.mt || 0, c: COL.NPSO_NRT }
+      ].filter(x => x.v > 0);
+      charts.donut = new Chart($('cDonut'), {
+        type: 'doughnut',
+        data: { labels: ds.map(x => x.l), datasets: [{ data: ds.map(x => x.v), backgroundColor: ds.map(x => x.c), borderWidth: 0 }] },
+        options: {
+          responsive: true, maintainAspectRatio: false, cutout: '62%',
+          plugins: { legend: { position: 'bottom', labels: { color: '#7a8ba8', font: { size: 11 }, usePointStyle: true, padding: 14 } } }
+        }
+      });
+    }
+
+    // Top agents + wilayah (fire and forget with safe catches)
+    await Promise.all([renderTopAgen(), renderDashWilayah()]);
+  } catch (err) {
+    console.error('renderDashboard error', err);
+    throw err;
+  }
+}
+
+async function renderTopAgen() {
+  try {
+    const agents = await api('agents');
+    const entries = Object.entries(agents || {})
+      .map(([name, v]) => ({ name, mt: v.mt || 0, tb: v.tb || 0, district: v.district || '-' }))
+      .sort((a, b) => b.mt - a.mt)
+      .slice(0, 5);
+    const wrap = $('topAgenWrap');
+    if (!wrap) return;
+    if (!entries.length) { wrap.innerHTML = '<div class="empty">Tidak ada data agen</div>'; return; }
+    wrap.innerHTML = `
+      <table class="data">
+        <thead><tr><th>#</th><th>Nama Agen</th><th>Wilayah</th><th class="num">MT</th><th class="num">Tabung</th></tr></thead>
+        <tbody>${entries.map((a, i) => `
+          <tr><td style="color:var(--dim)">${i + 1}</td>
+          <td><span class="dot" style="background:${['var(--cyan)','var(--blue)','var(--greenL)','var(--pinkL)','var(--orangeL)'][i]}"></span>${a.name}</td>
+          <td style="color:var(--dim)">${a.district}</td>
+          <td class="num">${fmt2(a.mt)}</td>
+          <td class="num">${fmt(a.tb)}</td></tr>`).join('')}
+        </tbody>
+      </table>`;
+  } catch (err) { console.error('renderTopAgen error', err); }
+}
+
+async function renderDashWilayah() {
+  try {
+    const districts = await api('districts');
+    const entries = Object.entries(districts || {})
+      .map(([name, v]) => ({ name, mt: v.mt || 0, tb: v.tb || 0 }))
+      .sort((a, b) => b.mt - a.mt);
+    const totalMT = entries.reduce((a, v) => a + v.mt, 0);
+    const wrap = $('wilWrap');
+    if (!wrap) return;
+    if (!entries.length) { wrap.innerHTML = '<div class="empty">Tidak ada data wilayah</div>'; return; }
+    wrap.innerHTML = `
+      <table class="data">
+        <thead><tr><th>Wilayah</th><th class="num">MT</th><th class="num">Tabung</th><th class="num">%</th></tr></thead>
+        <tbody>${entries.map(w => `
+          <tr><td>${w.name}</td><td class="num">${fmt2(w.mt)}</td><td class="num">${fmt(w.tb)}</td>
+          <td class="num"><span style="color:var(--greenL)">${pct(w.mt, totalMT)}%</span></td></tr>`).join('')}
+        </tbody>
+      </table>`;
+  } catch (err) { console.error('renderDashWilayah error', err); }
+}
+
+/* ---------- Wilayah ---------- */
+async function renderWilayah() {
+  try {
+    const [summary, distPSO, distRT, distNRT] = await Promise.all([
+      api('summary'),
+      safeApi('districts?type=PSO'),
+      safeApi('districts?type=NPSO_RT'),
+      safeApi('districts?type=NPSO_NRT')
+    ]);
+
+    const allNames = new Set([...Object.keys(distPSO), ...Object.keys(distRT), ...Object.keys(distNRT)]);
+    const entries = [...allNames].map(name => {
+      const pso = distPSO[name] || { mt: 0, tb: 0 };
+      const rt = distRT[name] || { mt: 0, tb: 0 };
+      const nrt = distNRT[name] || { mt: 0, tb: 0 };
+      return { name, psoMT: pso.mt, psoTB: pso.tb, rtMT: rt.mt, rtTB: rt.tb, nrtMT: nrt.mt, nrtTB: nrt.tb, totalMT: pso.mt + rt.mt + nrt.mt, totalTB: pso.tb + rt.tb + nrt.tb };
+    }).sort((a, b) => b.totalMT - a.totalMT);
+
+    const grandMT = entries.reduce((a, v) => a + v.totalMT, 0);
+    const grandTB = entries.reduce((a, v) => a + v.totalTB, 0);
+    const months = monthCount();
+
+    $('app').innerHTML = `
+      <div class="g4">
+        <div class="card" style="border-top:3px solid var(--cyan)"><div class="sc"><div class="v" style="color:var(--cyan)">${fmt2(grandMT)}</div><div class="l">Total MT</div></div></div>
+        <div class="card" style="border-top:3px solid var(--blue)"><div class="sc"><div class="v" style="color:var(--blue)">${fmt(grandTB)}</div><div class="l">Total Tabung</div></div></div>
+        <div class="card" style="border-top:3px solid var(--orangeL)"><div class="sc"><div class="v" style="color:var(--orangeL)">${entries.length}</div><div class="l">Kab/Kota</div></div></div>
+        <div class="card" style="border-top:3px solid var(--greenL)"><div class="sc"><div class="v" style="color:var(--greenL)">${summary.total_plants || 0}</div><div class="l">SPBE</div></div></div>
+      </div>
+      <div class="card"><div class="ch"><span class="ct">🗺️ Realisasi per Wilayah (MT)</span></div><div class="cw"><canvas id="cWil"></canvas></div></div>
+      <div class="card table-wrap">
+        <div class="ch"><span class="ct">📋 Detail Wilayah</span></div>
+        <table class="data">
+          <thead>
+            <tr>
+              <th>Wilayah</th>
+              <th class="num">PSO MT</th><th class="num">PSO Tabung</th>
+              <th class="num">NPSO RT MT</th><th class="num">NPSO RT Tb</th>
+              <th class="num">NPSO NRT MT</th><th class="num">NPSO NRT Tb</th>
+              <th class="num">Total MT</th><th class="num">Total Tb</th>
+              <th class="num">Rata-rata MT/hari</th><th class="num">%</th>
+            </tr>
+          </thead>
+          <tbody>${entries.map((w, i) => `
+            <tr>
+              <td><span class="dot" style="background:${palette(i)}"></span>${w.name}</td>
+              <td class="num">${fmt2(w.psoMT)}</td><td class="num">${fmt(w.psoTB)}</td>
+              <td class="num" style="color:var(--pinkL)">${fmt2(w.rtMT)}</td><td class="num" style="color:var(--pinkL)">${fmt(w.rtTB)}</td>
+              <td class="num" style="color:var(--orangeL)">${fmt2(w.nrtMT)}</td><td class="num" style="color:var(--orangeL)">${fmt(w.nrtTB)}</td>
+              <td class="num" style="font-weight:700">${fmt2(w.totalMT)}</td><td class="num">${fmt(w.totalTB)}</td>
+              <td class="num">${fmt2(w.totalMT / (months * 30))}</td>
+              <td class="num"><div class="progress" title="${pct(w.totalMT, grandMT)}%"><i style="width:${Math.min(100, Number(pct(w.totalMT, grandMT)))}%"></i></div></td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>`;
+
+    if ($('cWil')) {
+      if (charts.wil) charts.wil.destroy();
+      charts.wil = new Chart($('cWil'), {
+        type: 'bar',
+        data: {
+          labels: entries.map(w => w.name.replace('Kab ', '').replace('Kota ', 'K. ')),
+          datasets: [{
+            label: 'Total MT', data: entries.map(w => w.totalMT),
+            backgroundColor: entries.map((_, i) => hexToRgba(palette(i), 0.75)), borderRadius: 4
+          }]
+        },
+        options: chartOptions('MT')
+      });
+    }
+  } catch (err) {
+    console.error('renderWilayah error', err);
+    throw err;
+  }
+}
+
+/* ---------- Agen ---------- */
+async function renderAgen() {
+  try {
+    const [summary, agenPSO, agenStd] = await Promise.all([
+      api('summary'),
+      safeApi('agents?type=PSO'),
+      safeApi('agents?type=Standard')
+    ]);
+
+    const segMap = {};
+    (summary.segments || []).forEach(s => { segMap[s.name] = s.mt || 0; });
+    const rtTotal = segMap['NPSO_RT'] || 0;
+    const nrtTotal = segMap['NPSO_NRT'] || 0;
+    const npsTotal = rtTotal + nrtTotal;
+    const rtRatio = npsTotal ? rtTotal / npsTotal : 0;
+    const nrtRatio = npsTotal ? nrtTotal / npsTotal : 0;
+
+    const map = new Map();
+    Object.entries(agenPSO || {}).forEach(([name, v]) => {
+      map.set(name, { name, district: v.district || '-', psoMT: v.mt || 0, psoTB: v.tb || 0, stdMT: 0, stdTB: 0 });
+    });
+    Object.entries(agenStd || {}).forEach(([name, v]) => {
+      const row = map.get(name) || { name, district: v.district || '-', psoMT: 0, psoTB: 0, stdMT: 0, stdTB: 0 };
+      row.stdMT += v.mt || 0; row.stdTB += v.tb || 0;
+      map.set(name, row);
+    });
+
+    let rows = [...map.values()].map(a => ({
+      ...a,
+      rtMT: a.stdMT * rtRatio, rtTB: a.stdTB * rtRatio,
+      nrtMT: a.stdMT * nrtRatio, nrtTB: a.stdTB * nrtRatio,
+      totalMT: a.psoMT + a.stdMT
+    })).sort((a, b) => b.totalMT - a.totalMT);
+
+    const totalMT = rows.reduce((a, v) => a + v.totalMT, 0);
+    const totalPSO = rows.reduce((a, v) => a + v.psoMT, 0);
+    const totalRT = rows.reduce((a, v) => a + v.rtMT, 0);
+    const totalNRT = rows.reduce((a, v) => a + v.nrtMT, 0);
+
+    $('app').innerHTML = `
+      <div class="g4">
+        <div class="card" style="border-top:3px solid var(--cyan)"><div class="sc"><div class="v" style="color:var(--cyan)">${fmt2(totalMT)}</div><div class="l">Total MT Agen</div></div></div>
+        <div class="card" style="border-top:3px solid var(--greenL)"><div class="sc"><div class="v" style="color:var(--greenL)">${fmt2(totalPSO)}</div><div class="l">PSO MT</div></div></div>
+        <div class="card" style="border-top:3px solid var(--pinkL)"><div class="sc"><div class="v" style="color:var(--pinkL)">${fmt2(totalRT)}</div><div class="l">NPSO RT MT</div></div></div>
+        <div class="card" style="border-top:3px solid var(--orangeL)"><div class="sc"><div class="v" style="color:var(--orangeL)">${fmt2(totalNRT)}</div><div class="l">NPSO NRT MT</div></div></div>
+      </div>
+      <div class="card">
+        <div class="ch" style="flex-wrap:wrap;gap:8px">
+          <span class="ct">🏢 Daftar Agen</span>
+          <input type="text" id="agenSearch" class="search-box" placeholder="Cari nama agen / wilayah...">
+        </div>
+        <div class="table-wrap">
+          <table class="data" id="agenTable">
+            <thead>
+              <tr><th>Nama Agen</th><th>Wilayah</th><th class="num">PSO MT</th><th class="num">PSO Tabung</th><th class="num">NPSO RT MT</th><th class="num">NPSO NRT MT</th><th class="num">Total MT</th></tr>
+            </thead>
+            <tbody>${rows.map(a => `
+              <tr data-search="${(a.name + ' ' + a.district).toLowerCase()}">
+                <td>${a.name}</td><td style="color:var(--dim)">${a.district}</td>
+                <td class="num" style="color:var(--greenL)">${fmt2(a.psoMT)}</td><td class="num">${fmt(a.psoTB)}</td>
+                <td class="num" style="color:var(--pinkL)">${fmt2(a.rtMT)}</td>
+                <td class="num" style="color:var(--orangeL)">${fmt2(a.nrtMT)}</td>
+                <td class="num" style="font-weight:700">${fmt2(a.totalMT)}</td>
+              </tr>`).join('')}
+            </tbody>
+          </table>
+          <div id="agenEmpty" class="empty" style="display:none">Tidak ada agen cocok</div>
+        </div>
+      </div>`;
+
+    const search = $('agenSearch');
+    if (search) {
+      search.addEventListener('input', () => {
+        const q = search.value.trim().toLowerCase();
+        let visible = 0;
+        document.querySelectorAll('#agenTable tbody tr').forEach(tr => {
+          const show = !q || (tr.dataset.search || '').includes(q);
+          tr.style.display = show ? '' : 'none';
+          if (show) visible++;
+        });
+        if ($('agenEmpty')) $('agenEmpty').style.display = visible ? 'none' : 'block';
+      });
+    }
+  } catch (err) {
+    console.error('renderAgen error', err);
+    throw err;
+  }
+}
+
+/* ---------- SPBE ---------- */
+async function renderSpbe() {
+  try {
+    const [summary, plants] = await Promise.all([
+      api('summary'),
+      api('plants')
+    ]);
+
+    const entries = Object.entries(plants || {})
+      .map(([name, v]) => ({ name, mt: v.mt || 0, tb: v.tb || 0 }))
+      .sort((a, b) => b.mt - a.mt);
+    if (!entries.length) { $('app').innerHTML = '<div class="empty">Tidak ada data SPBE</div>'; return; }
+
+    const months = monthCount();
+    const totalMT = entries.reduce((a, v) => a + v.mt, 0);
+
+    $('app').innerHTML = `
+      <div class="g4">
+        <div class="card" style="border-top:3px solid var(--cyan)"><div class="sc"><div class="v" style="color:var(--cyan)">${fmt2(totalMT)}</div><div class="l">Total MT SPBE</div></div></div>
+        <div class="card" style="border-top:3px solid var(--blue)"><div class="sc"><div class="v" style="color:var(--blue)">${fmt(entries.reduce((a, v) => a + v.tb, 0))}</div><div class="l">Total Tabung</div></div></div>
+        <div class="card" style="border-top:3px solid var(--orangeL)"><div class="sc"><div class="v" style="color:var(--orangeL)">${entries.length}</div><div class="l">SPBE Aktif</div></div></div>
+        <div class="card" style="border-top:3px solid var(--greenL)"><div class="sc"><div class="v" style="color:var(--greenL)">${fmt2(totalMT / (entries.length * months * 30))}</div><div class="l">Avg MT/hari/SPBE</div></div></div>
+      </div>
+      <div class="card">
+        <div class="ch"><span class="ct">🏭 Rata-rata Harian per SPBE (MT)</span>
+          <select id="spbeFilter" style="min-width:140px"><option value="all">Semua SPBE</option>${entries.map(p => `<option value="${p.name}">${p.name}</option>`).join('')}</select>
+        </div>
+        <div class="cw lg"><canvas id="cSpbe"></canvas></div>
+      </div>
+      <div class="card table-wrap">
+        <div class="ch"><span class="ct">📋 Detail SPBE</span></div>
+        <table class="data" id="spbeTable">
+          <thead><tr><th>SPBE</th><th class="num">MT</th><th class="num">Tabung</th><th class="num">Avg MT/hari</th><th class="num">%</th></tr></thead>
+          <tbody>${entries.map((p, i) => `
+            <tr data-name="${p.name}">
+              <td><span class="dot" style="background:${palette(i)}"></span>${p.name}</td>
+              <td class="num">${fmt2(p.mt)}</td><td class="num">${fmt(p.tb)}</td>
+              <td class="num">${fmt2(p.mt / (months * 30))}</td>
+              <td class="num"><div class="progress" title="${pct(p.mt, totalMT)}%"><i style="width:${Math.min(100, Number(pct(p.mt, totalMT)))}%"></i></div></td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>`;
+
+    function drawSpbe(filterName) {
+      const data = filterName === 'all' ? entries : entries.filter(p => p.name === filterName);
+      if (charts.spbe) charts.spbe.destroy();
+      charts.spbe = new Chart($('cSpbe'), {
+        type: 'line',
+        data: {
+          labels: data.map(p => p.name),
+          datasets: [{
+            label: 'Avg MT/hari', data: data.map(p => p.mt / (months * 30)),
+            borderColor: COL[state.type] || COL.all, backgroundColor: 'rgba(74,224,255,.15)',
+            borderWidth: 2, pointRadius: 4, pointBackgroundColor: COL[state.type] || COL.all,
+            tension: .3, fill: true
+          }]
+        },
+        options: chartOptions('MT/hari')
+      });
+      // highlight table row
+      document.querySelectorAll('#spbeTable tbody tr').forEach(tr => {
+        const match = filterName === 'all' || tr.dataset.name === filterName;
+        tr.style.opacity = match ? '1' : '0.35';
+      });
+    }
+
+    const sf = $('spbeFilter');
+    if (sf) {
+      sf.addEventListener('change', () => drawSpbe(sf.value));
+      drawSpbe('all');
+    }
+  } catch (err) {
+    console.error('renderSpbe error', err);
+    throw err;
+  }
+}
+
+/* ---------- Perbandingan ---------- */
+async function renderBanding() {
+  try {
+    const cmp = await api('compare');
+    const years = Object.keys(cmp.years || {}).sort();
+    const mtmEntries = Object.entries(cmp.mtm || {}).sort((a, b) => {
+      const [m1, y1] = a[0].split('.');
+      const [m2, y2] = b[0].split('.');
+      return y1 !== y2 ? parseInt(y1) - parseInt(y2) : parseInt(m1) - parseInt(m2);
+    });
+
+    $('app').innerHTML = `
+      <div class="g4">
+        ${years.map((y, i) => `
+          <div class="card" style="border-top:3px solid ${i === years.length - 1 ? 'var(--cyan)' : 'var(--dim)'}">
+            <div class="sc"><div class="v" style="color:${i === years.length - 1 ? 'var(--cyan)' : 'var(--dim)'}">${fmt2(cmp.years[y].mt)}</div><div class="l">Total ${y} (MT)</div></div>
+          </div>`).join('')}
+      </div>
+      <div class="g2">
+        <div class="card"><div class="ch"><span class="ct">📊 Perbandingan Tahun (YoY)</span></div><div class="cw sm"><canvas id="cYoy"></canvas></div></div>
+        <div class="card"><div class="ch"><span class="ct">📊 Month-to-Month (MoM)</span></div><div class="cw sm"><canvas id="cMom"></canvas></div></div>
+      </div>
+      <div class="card table-wrap">
+        <div class="ch"><span class="ct">📋 Tabel Selisih</span></div>
+        <table class="data">
+          <thead><tr><th>Periode</th><th class="num">Nilai (MT)</th><th class="num">Sebelumnya</th><th class="num">Selisih MT</th><th class="num">% Perubahan</th><th>Keterangan</th></tr></thead>
+          <tbody>${renderDiffRows(cmp)}</tbody>
+        </table>
+      </div>`;
+
+    if ($('cYoy') && years.length) {
+      if (charts.yoy) charts.yoy.destroy();
+      charts.yoy = new Chart($('cYoy'), {
+        type: 'bar',
+        data: {
+          labels: years,
+          datasets: [{
+            label: 'MT', data: years.map(y => cmp.years[y].mt),
+            backgroundColor: years.map((_, i) => i === years.length - 1 ? 'rgba(74,224,255,.75)' : 'rgba(100,116,139,.5)'),
+            borderRadius: 4
+          }]
+        },
+        options: chartOptions('MT')
+      });
+    }
+
+    if ($('cMom') && mtmEntries.length) {
+      if (charts.mom) charts.mom.destroy();
+      const last = mtmEntries.slice(-12);
+      charts.mom = new Chart($('cMom'), {
+        type: 'bar',
+        data: {
+          labels: last.map(([ym]) => { const [mm, yy] = ym.split('.'); return (MS[parseInt(mm, 10) - 1] || mm) + " '" + (yy || '').slice(2); }),
+          datasets: [{
+            label: 'Selisih MT', data: last.map(([, v]) => v.change || 0),
+            backgroundColor: last.map(([, v]) => (v.change || 0) >= 0 ? 'rgba(46,125,50,.7)' : 'rgba(194,24,91,.7)'),
+            borderRadius: 4
+          }]
+        },
+        options: chartOptions('MT')
+      });
+    }
+  } catch (err) {
+    console.error('renderBanding error', err);
+    throw err;
+  }
+}
+
+function renderDiffRows(cmp) {
+  const rows = [];
+  const years = Object.keys(cmp.years || {}).sort();
+  for (let i = 1; i < years.length; i++) {
+    const cur = cmp.years[years[i]].mt || 0;
+    const prev = cmp.years[years[i - 1]].mt || 0;
+    const ch = cur - prev;
+    const p = prev ? (ch / prev * 100) : 0;
+    rows.push({ p: `${years[i]} vs ${years[i - 1]}`, cur, prev, ch, pct: p, note: ch >= 0 ? 'Naik' : 'Turun' });
+  }
+  const mtm = Object.entries(cmp.mtm || {}).sort((a, b) => {
+    const [m1, y1] = a[0].split('.');
+    const [m2, y2] = b[0].split('.');
+    return y1 !== y2 ? parseInt(y1) - parseInt(y2) : parseInt(m1) - parseInt(m2);
+  }).slice(-12);
+  mtm.forEach(([ym, v]) => {
+    rows.push({ p: ym, cur: v.current?.mt || 0, prev: v.previous?.mt || 0, ch: v.change || 0, pct: v.change_pct || 0, note: (v.change || 0) >= 0 ? 'Naik' : 'Turun' });
+  });
+  if (!rows.length) return '<tr><td colspan="6" class="empty">Tidak ada data perbandingan</td></tr>';
+  return rows.map(r => `
+    <tr>
+      <td>${r.p}</td>
+      <td class="num">${fmt2(r.cur)}</td>
+      <td class="num">${fmt2(r.prev)}</td>
+      <td class="num" style="color:${r.ch >= 0 ? 'var(--greenL)' : 'var(--pinkL)'}">${fmt2(r.ch)}</td>
+      <td class="num" style="color:${r.pct >= 0 ? 'var(--greenL)' : 'var(--pinkL)'}">${fmt2(r.pct)}%</td>
+      <td>${r.note}</td>
+    </tr>`).join('');
+}
+
+/* ---------- Performa ---------- */
+function perfStatus(st) {
+  if (st === 'tepat') return { c: 'green', t: 'Tepat', icon: '✅' };
+  if (st === 'kurang') return { c: 'yellow', t: 'Kurang', icon: '⚠️' };
+  if (st === 'berlebih') return { c: 'red', t: 'Berlebih', icon: '🔴' };
+  return { c: 'red', t: 'Kritis', icon: '🚨' };
+}
+
+async function renderPerforma() {
+  try {
+    state.performaSort = state.performaSort || 'pct_asc';
+    state.performaThreshold = state.performaThreshold || '100';
+    const res = await api(`performa?sort_by=${encodeURIComponent(state.performaSort)}&threshold=${encodeURIComponent(state.performaThreshold)}`);
+    const rows = res.data || [];
+    const s = res.summary || {};
+    const prog = res.prognosis || {};
+
+    const top = [...rows].sort((a, b) => b.alokasi - a.alokasi).slice(0, 15);
+
+    const overNote = s.over_perform_count > 0
+      ? `<div class="alert">🔴 ${fmt(s.over_perform_count)} wilayah realisasi MELEBIHI alokasi (over-supply)</div>`
+      : '<div class="alert" style="border-color:rgba(16,185,129,.25);background:rgba(16,185,129,.08);color:#bbf7d0">✅ Semua wilayah realisasi masih di bawah alokasi</div>';
+
+    // Prognosis card
+    let progHtml = '';
+    if (prog && prog.total_realisasi_ytd) {
+      const progOk = prog.prognosa_vs_alokasi_pct <= 100;
+      progHtml = `
+      <div class="card" style="grid-column:1/-1">
+        <div class="ch"><span class="ct">📈 Prognosa Akhir ${prog.tahun}</span></div>
+        <div class="kpi-grid">
+          <div class="kpi"><div class="ic" style="color:var(--cyan)">📊</div><div><div class="kv">${fmt2(prog.total_realisasi_ytd)}</div><div class="kl">Realisasi YTD (s.d. bulan ${prog.bulan_terakhir})</div></div></div>
+          <div class="kpi"><div class="ic" style="color:var(--blue)">📈</div><div><div class="kv">${fmt2(prog.rata_rata_per_bulan)}</div><div class="kl">Rata-rata MT/bulan</div></div></div>
+          <div class="kpi"><div class="ic" style="color:${progOk ? 'var(--greenL)' : '#ef5350'}">🎯</div><div><div class="kv" style="color:${progOk ? 'var(--greenL)' : '#ef5350'}">${fmt2(prog.prognosa_akhir_tahun)}</div><div class="kl">Prognosa Akhir Tahun (${prog.sisa_bulan} sisa bulan)</div></div></div>
+          <div class="kpi"><div class="ic" style="color:${progOk ? 'var(--greenL)' : '#ef5350'}">📋</div><div><div class="kv" style="color:${progOk ? 'var(--greenL)' : '#ef5350'}">${fmt2(prog.prognosa_vs_alokasi_pct)}%</div><div class="kl">Prognosa vs Alokasi (${fmt2(prog.total_alokasi_tahunan)} MT)</div></div></div>
+        </div>
+      </div>`;
+    }
+
+    $('app').innerHTML = `
+      <div class="g4">
+        <div class="card" style="border-top:3px solid var(--cyan)"><div class="sc"><div class="v" style="color:var(--cyan)">${fmt(s.total_wilayah || 0)}</div><div class="l">Total Wilayah</div></div></div>
+        <div class="card" style="border-top:3px solid var(--greenL)"><div class="sc"><div class="v" style="color:var(--greenL)">${fmt2(s.total_realisasi || 0)}</div><div class="l">Realisasi (MT) ${s.tahun}</div></div></div>
+        <div class="card" style="border-top:3px solid var(--blue)"><div class="sc"><div class="v" style="color:var(--blue)">${fmt2(s.total_alokasi || 0)}</div><div class="l">Alokasi (MT) ${s.tahun}</div></div></div>
+        <div class="card" style="border-top:3px solid #${s.avg_pct > 100 ? 'ef5350' : s.avg_pct >= 85 ? '10b981' : 'f59e0b'}"><div class="sc"><div class="v" style="color:#${s.avg_pct > 100 ? 'ef5350' : s.avg_pct >= 85 ? '10b981' : 'f59e0b'}">${fmt2(s.avg_pct)}%</div><div class="l">Realisasi vs Alokasi</div></div></div>
+      </div>
+      ${overNote}
+      ${progHtml}
+      <div class="card"><div class="ch"><span class="ct">🎯 Alokasi vs Realisasi PSO ${s.tahun}</span></div><div class="cw lg"><canvas id="cPerforma"></canvas></div></div>
+      <div class="card table-wrap">
+        <div class="ch" style="flex-wrap:wrap;gap:8px">
+          <span class="ct">📋 Per Wilayah</span>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+            <select id="perfSort"><option value="pct_asc">% Naik</option><option value="pct_desc">% Turun</option><option value="wilayah">Wilayah</option><option value="alokasi_desc">Alokasi</option></select>
+            <select id="perfThreshold"><option value="100">Semua</option><option value="80">≥80%</option><option value="50">≥50%</option><option value="25">≥25%</option></select>
+          </div>
+        </div>
+        <table class="data">
+          <thead><tr>
+            <th>Wilayah</th>
+            <th class="num">Agen</th>
+            <th class="num">Alokasi (MT)</th>
+            <th class="num">Realisasi (MT)</th>
+            <th class="num">%</th>
+            <th class="num">Sisa (MT)</th>
+            <th>Status</th>
+          </tr></thead>
+          <tbody>${rows.length ? rows.map((a, i) => {
+            const st = perfStatus(a.status);
+            const barColor = a.pct_realisasi >= 100 ? '#ef5350' : a.pct_realisasi >= 85 ? 'var(--greenL)' : a.pct_realisasi >= 50 ? '#f59e0b' : '#ef5350';
+            return `<tr>
+              <td><span class="dot" style="background:${['var(--cyan)','var(--blue)','var(--greenL)','var(--pinkL)','var(--orangeL)','var(--purpleL)','#f59e0b','#ef4444','#06b6d4','#84cc16','#ec4899','#14b8a6','#f97316','#8b5cf6'][i % 14]}"></span>${esc(a.wilayah)}</td>
+              <td class="num">${fmt(a.agen_count)}</td>
+              <td class="num">${fmt2(a.alokasi)}</td>
+              <td class="num" style="font-weight:700">${fmt2(a.realisasi_mt)}</td>
+              <td class="num" style="color:${barColor};font-weight:700">${fmt2(a.pct_realisasi)}%</td>
+              <td class="num" style="color:${a.selisih_mt > 0 ? 'var(--greenL)' : '#ef5350'}">${a.selisih_mt > 0 ? fmt2(a.selisih_mt) : '-' + fmt2(Math.abs(a.selisih_mt))}</td>
+              <td><span class="status ${st.c}">${st.icon} ${st.t}</span></td>
+            </tr>`;
+          }).join('') : '<tr><td colspan="7" class="empty">Tidak ada data</td></tr>'}</tbody>
+        </table>
+      </div>`;
+
+    if ($('perfSort')) {
+      $('perfSort').value = state.performaSort;
+      $('perfSort').addEventListener('change', e => { state.performaSort = e.target.value; renderPerforma(); });
+    }
+    if ($('perfThreshold')) {
+      $('perfThreshold').value = String(state.performaThreshold);
+      $('perfThreshold').addEventListener('change', e => { state.performaThreshold = e.target.value; renderPerforma(); });
+    }
+    if ($('cPerforma')) {
+      if (charts.performa) charts.performa.destroy();
+      const perfOptions = chartOptions('MT');
+      perfOptions.plugins.legend = {
+        display: true,
+        position: 'bottom',
+        labels: { color: '#7a8ba8', font: { size: 11 }, usePointStyle: true, padding: 14 }
+      };
+      charts.performa = new Chart($('cPerforma'), {
+        type: 'bar',
+        data: {
+          labels: top.map(a => a.wilayah.replace('Kab ', '').replace('Kota ', 'K. ')),
+          datasets: [
+            { label: 'Alokasi', data: top.map(a => a.alokasi), backgroundColor: 'rgba(74,224,255,.65)', borderRadius: 4 },
+            { label: 'Realisasi', data: top.map(a => a.realisasi_mt), backgroundColor: 'rgba(239,83,80,.7)', borderRadius: 4 }
+          ]
+        },
+        options: perfOptions
+      });
+    }
+  } catch (err) {
+    console.error('renderPerforma error', err);
+    throw err;
+  }
+}
+
+/* ---------- Rekap ---------- */
+async function renderRekap() {
+  try {
+    const res = await api('rekap');
+    const summary = res.summary || {};
+    const months = summary.months || [];
+    const data = res.data || [];
+
+    $('app').innerHTML = `
+      <div class="g3">
+        <div class="card" style="border-top:3px solid var(--cyan)"><div class="sc"><div class="v" style="color:var(--cyan)">${fmt(summary.total_agen || 0)}</div><div class="l">Total Agen</div></div></div>
+        <div class="card" style="border-top:3px solid var(--greenL)"><div class="sc"><div class="v" style="color:var(--greenL)">${fmt2(summary.total_mt || 0)}</div><div class="l">Total MT</div></div></div>
+        <div class="card" style="border-top:3px solid var(--blue)"><div class="sc"><div class="v" style="color:var(--blue)">${fmt(summary.total_tabung || 0)}</div><div class="l">Total Tabung</div></div></div>
+      </div>
+      <div class="card">
+        <div class="ch" style="flex-wrap:wrap;gap:8px">
+          <span class="ct">📊 Rekap Realisasi per Agen</span>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+            <input type="text" id="rekapAgenSearch" class="search-box" placeholder="Cari nama agen...">
+            <select id="rekapDistrict" style="min-width:150px"><option value="all">Semua Wilayah</option></select>
+            <a id="rekapExport" class="mini-btn" href="#" target="_blank" style="text-decoration:none">📤 Export Excel</a>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="data" id="rekapTable">
+            <thead>
+              <tr>
+                <th>No</th>
+                <th>Nama Agen</th>
+                <th>Wilayah</th>
+                ${months.map(m => { const [mm, yy] = m.split('.'); return `<th class="num">${MS[parseInt(mm, 10) - 1] || mm} ${yy}</th>`; }).join('')}
+                <th class="num">Total MT</th>
+              </tr>
+            </thead>
+            <tbody>${data.map((a, i) => `
+              <tr data-search="${esc((a.nama_agen + ' ' + a.wilayah).toLowerCase())}">
+                <td style="color:var(--dim)">${i + 1}</td>
+                <td><span class="dot" style="background:${palette(i)}"></span>${esc(a.nama_agen)}</td>
+                <td style="color:var(--dim)">${esc(a.wilayah)}</td>
+                ${months.map(m => `<td class="num">${fmt2((a.monthly[m] || {}).mt || 0)}</td>`).join('')}
+                <td class="num" style="font-weight:700">${fmt2(a.total_mt || 0)}</td>
+              </tr>`).join('')}
+            </tbody>
+          </table>
+          <div id="rekapEmpty" class="empty" style="display:none">Tidak ada data</div>
+        </div>
+      </div>
+      <style>
+        #rekapTable tbody tr:nth-child(even) { background: rgba(255,255,255,.02); }
+        #rekapTable tbody tr:nth-child(odd) { background: rgba(255,255,255,.005); }
+      </style>
+    `;
+
+    // populate district dropdown
+    const distSelect = $('rekapDistrict');
+    if (distSelect) {
+      const cur = distSelect.value;
+      distSelect.innerHTML = '<option value="all">Semua Wilayah</option>' +
+        (filterData.districts || []).sort().map(d => `<option value="${d}">${d}</option>`).join('');
+      distSelect.value = (filterData.districts || []).includes(cur) ? cur : (state.district || 'all');
+      distSelect.addEventListener('change', e => {
+        state.district = e.target.value;
+        loadActiveTab();
+      });
+    }
+
+    // search filter
+    const search = $('rekapAgenSearch');
+    if (search) {
+      search.addEventListener('input', () => {
+        const q = search.value.trim().toLowerCase();
+        let visible = 0;
+        document.querySelectorAll('#rekapTable tbody tr').forEach(tr => {
+          const show = !q || (tr.dataset.search || '').includes(q);
+          tr.style.display = show ? '' : 'none';
+          if (show) visible++;
+        });
+        if ($('rekapEmpty')) $('rekapEmpty').style.display = visible ? 'none' : 'block';
+      });
+    }
+
+    // export link
+    const exportBtn = $('rekapExport');
+    if (exportBtn) {
+      exportBtn.href = `/api/lpg/rekap/export?${qs()}`;
+    }
+  } catch (err) {
+    console.error('renderRekap error', err);
+    throw err;
+  }
+}
+
+/* ---------- Pangkalan ---------- */
+async function renderPangkalan() {
+  try {
+    state.issueType = state.issueType || 'all';
+    state.pangStatus = state.pangStatus || '';
+    const st = state.pangStatus ? `&status=${encodeURIComponent(state.pangStatus)}` : '';
+    const endpoint = state.issueType === 'all' ? `/api/pangkalan/check?issue_type=all${st}` : `/api/pangkalan/check?issue_type=${encodeURIComponent(state.issueType)}${st}`;
+    const res = await api(endpoint);
+    const s = res.summary || {};
+    const rows = res.per_agen || [];
+    const detail = res.detail || [];
+    const byAgen = {};
+    detail.forEach(d => {
+      const k = d.nama_agen || '-';
+      if (!byAgen[k]) byAgen[k] = [];
+      byAgen[k].push(d);
+    });
+    window.pangkalanDetail = byAgen;
+    const top = rows.slice(0, 10);
+
+    $('app').innerHTML = `
+      <a href="/pangkalan" target="_blank" class="alert" style="display:flex;align-items:center;gap:10px;text-decoration:none;margin-bottom:14px;border-color:rgba(96,165,250,.25);background:rgba(96,165,250,.08);color:#93c5fd">
+        🗺️ <strong style="flex:1">Buka Pangkalan Geo-Mapper &rarr;</strong>
+        <span style="font-size:12px;opacity:.7">Map interaktif 5.299 pangkalan</span>
+      </a>
+      <div class="g4">
+        <div class="card" style="border-top:3px solid var(--cyan)"><div class="sc"><div class="v" style="color:var(--cyan)">${fmt(s.total_pangkalan || 0)}</div><div class="l">Total Pangkalan</div></div></div>
+        <div class="card" style="border-top:3px solid var(--orangeL)"><div class="sc"><div class="v" style="color:var(--orangeL)">${fmt(s.kota_kosong_count || 0)}</div><div class="l">Kota Kosong</div></div></div>
+        <div class="card" style="border-top:3px solid #ef5350"><div class="sc"><div class="v" style="color:#ef5350">${fmt(s.koordinat_kosong_count || 0)}</div><div class="l">Koordinat Kosong</div></div></div>
+        <div class="card" style="border-top:3px solid var(--pinkL)"><div class="sc"><div class="v" style="color:var(--pinkL)">${fmt(s.duplicate_registrasi_count || 0)}</div><div class="l">Duplikat Registrasi</div></div></div>
+      </div>
+      <div class="card"><div class="ch"><span class="ct">🔍 Top 10 Agen dengan Isu Data</span></div><div class="cw"><canvas id="cPangkalan"></canvas></div></div>
+      <div class="card table-wrap">
+        <div class="ch" style="flex-wrap:wrap;gap:8px">
+          <span class="ct">📋 Isu Pangkalan per Agen</span>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <select id="statusFilter"><option value="">Semua Status</option><option value="Active">Active</option><option value="Inactive">Inactive</option></select>
+            <select id="issueFilter"><option value="all">Semua Isu</option><option value="kota_kosong">Kota Kosong</option><option value="koordinat_kosong">Koordinat Kosong</option><option value="duplikat">Duplikat</option></select>
+          </div>
+        </div>
+        <table class="data">
+          <thead><tr><th>Nama Agen</th><th class="num">Total Issues</th><th class="num">Kota Kosong</th><th class="num">Koordinat Kosong</th><th class="num">Duplikat</th><th>Detail</th></tr></thead>
+          <tbody>${rows.length ? rows.map((a, i) => `
+            <tr>
+              <td>${esc(a.nama_agen)}</td>
+              <td class="num" style="font-weight:800">${fmt(a.total)}</td>
+              <td class="num">${fmt(a.kota_kosong)}</td>
+              <td class="num">${fmt(a.koordinat_kosong)}</td>
+              <td class="num">${fmt(a.duplikat)}</td>
+              <td><button class="mini-btn" onclick="togglePangkalanDetail(${i}, '${encodeURIComponent(a.nama_agen)}')">Detail</button></td>
+            </tr>
+            <tr class="detail-row" id="pdetail-${i}" style="display:none"><td colspan="6"><div class="detail-list"></div></td></tr>`).join('') : '<tr><td colspan="6" class="empty">Tidak ada isu data</td></tr>'}
+          </tbody>
+        </table>
+      </div>`;
+
+    if ($('issueFilter')) {
+      $('issueFilter').value = state.issueType;
+      $('issueFilter').addEventListener('change', e => { state.issueType = e.target.value; renderPangkalan(); });
+    }
+    if ($('statusFilter')) {
+      $('statusFilter').value = state.pangStatus;
+      $('statusFilter').addEventListener('change', e => { state.pangStatus = e.target.value; renderPangkalan(); });
+    }
+    if ($('cPangkalan')) {
+      if (charts.pangkalan) charts.pangkalan.destroy();
+      charts.pangkalan = new Chart($('cPangkalan'), {
+        type: 'bar',
+        data: {
+          labels: top.map(a => a.nama_agen),
+          datasets: [{ label: 'Issues', data: top.map(a => a.total), backgroundColor: 'rgba(239,83,80,.7)', borderRadius: 4 }]
+        },
+        options: chartOptions('issues')
+      });
+    }
+  } catch (err) {
+    console.error('renderPangkalan error', err);
+    throw err;
+  }
+}
+
+function togglePangkalanDetail(idx, agenKey) {
+  const agen = decodeURIComponent(agenKey || '');
+  const row = $(`pdetail-${idx}`);
+  if (!row) return;
+  const wrap = row.querySelector('.detail-list');
+  const rows = (window.pangkalanDetail && window.pangkalanDetail[agen]) || [];
+  if (row.style.display === 'none') {
+    wrap.innerHTML = rows.length ? rows.map(d => `
+      <div><b>${esc(d.issue_type)}</b> · ${esc(d.id_registrasi || '-')} · ${esc(d.nama_pangkalan || '-')} · ${esc(d.kota || '-')} · ${esc(d.latitude ?? '-')} / ${esc(d.longitude ?? '-')}</div>
+    `).join('') : '<div>Tidak ada detail</div>';
+    row.style.display = '';
+  } else {
+    row.style.display = 'none';
+  }
+}
+
+/* ---------- Utilities ---------- */
+function chartOptions(unit) {
+  const gridColor = 'rgba(255,255,255,.04)';
+  return {
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: 'rgba(10,14,23,.95)', titleColor: '#e8edf5', bodyColor: '#e8edf5',
+        borderColor: 'rgba(255,255,255,.1)', borderWidth: 1, padding: 10,
+        callbacks: { label: ctx => `${ctx.dataset.label || ''}: ${fmt2(ctx.parsed.y || ctx.parsed)} ${unit || ''}`.trim() }
+      }
+    },
+    scales: {
+      x: { ticks: { color: '#64748b', font: { size: 10 } }, grid: { display: false } },
+      y: { ticks: { color: '#64748b', font: { size: 9 }, callback: v => fmt(v) }, grid: { color: gridColor } }
+    }
+  };
+}
+
+function hexToRgba(hex, alpha) {
+  try {
+    let c = hex.replace('#', '');
+    if (c.length === 3) c = c.split('').map(x => x + x).join('');
+    const r = parseInt(c.substring(0, 2), 16);
+    const g = parseInt(c.substring(2, 4), 16);
+    const b = parseInt(c.substring(4, 6), 16);
+    return `rgba(${r},${g},${b},${alpha})`;
+  } catch (e) { return `rgba(74,224,255,${alpha})`; }
+}
+
+function palette(i) {
+  const p = ['#4ae0ff','#1e90ff','#66bb6a','#f06292','#ff8a50','#ab47bc','#26c6da','#7e57c2','#ffca28','#ef5350'];
+  return p[i % p.length];
+}
+
+/* ---------- Start ---------- */
+document.addEventListener('DOMContentLoaded', async () => {
+  try { await loadActiveTab(); }
+  catch (e) { console.error('DOMContentLoaded error', e); showError(e.message || 'Gagal memulai dashboard'); }
+});
+</script>
+</body>
+</html>

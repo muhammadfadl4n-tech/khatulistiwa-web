@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="id">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Dashboard Pengiriman LPG</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
+</head>
+<body class="bg-body-tertiary">
+    <nav class="navbar navbar-expand-lg bg-white border-bottom">
+        <div class="container-fluid px-3 px-lg-4">
+            <a class="navbar-brand fw-semibold" href="{{ url_for('index') }}">Monitoring LPG</a>
+            <div class="d-flex gap-2">
+                <a class="btn btn-outline-primary btn-sm" href="{{ url_for('form') }}">Isi Form</a>
+                <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('logout') }}">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container-fluid px-3 px-lg-4 py-4">
+        <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 mb-3">
+            <div>
+                <h1 class="h3 fw-bold mb-1">Dashboard Pengiriman LPG</h1>
+                <p class="text-secondary mb-0">Total data: <span class="fw-semibold text-dark">{{ total }}</span></p>
+            </div>
+            <div class="d-flex flex-column flex-sm-row gap-2 align-items-stretch align-items-sm-center">
+                <form method="get" class="d-flex gap-2">
+                    <input type="search" class="form-control" name="search" value="{{ search }}" placeholder="Cari Nama Agen">
+                    <button type="submit" class="btn btn-primary">Cari</button>
+                </form>
+                <a class="btn btn-success" href="{{ url_for('export_csv', search=search) }}">Export CSV</a>
+            </div>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}" role="alert">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="card border-0 shadow-sm">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Nama Agen</th>
+                            <th>Nama Pangkalan</th>
+                            <th>Tgl Kirim Terakhir</th>
+                            <th>Jml Tabung Terakhir</th>
+                            <th>Stok Saat Ini</th>
+                            <th>Tgl Kirim Selanjutnya</th>
+                            <th>Jml Tabung Selanjutnya</th>
+                            <th>Dokumentasi</th>
+                            <th>Tanggal Input</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if rows %}
+                            {% for row in rows %}
+                                <tr>
+                                    <td>{{ row.nama_agen }}</td>
+                                    <td>{{ row.nama_pangkalan }}</td>
+                                    <td>{{ row.tanggal_pengiriman_terakhir }}</td>
+                                    <td>{{ row.jumlah_tabung_terakhir }}</td>
+                                    <td>{{ row.stok_saat_ini }}</td>
+                                    <td>{{ row.tanggal_pengiriman_selanjutnya }}</td>
+                                    <td>{{ row.jumlah_tabung_selanjutnya }}</td>
+                                    <td>
+                                        <a href="{{ url_for('uploaded_file', filename=row.dokumentasi) }}" target="_blank" rel="noopener">
+                                            <img src="{{ url_for('uploaded_file', filename=row.dokumentasi) }}" alt="Dokumentasi {{ row.nama_pangkalan }}" class="doc-thumb">
+                                        </a>
+                                    </td>
+                                    <td>{{ row.created_at }}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-danger btn-hapus" data-id="{{ row.id }}" data-nama="{{ row.nama_pangkalan|e }}">Hapus</button>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="10" class="text-center text-secondary py-4">Belum ada data pengiriman.</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {% if total_pages > 1 %}
+            <nav class="mt-3" aria-label="Navigasi halaman">
+                <ul class="pagination justify-content-center flex-wrap">
+                    <li class="page-item {% if page <= 1 %}disabled{% endif %}">
+                        <a class="page-link" href="{{ url_for('dashboard', page=page-1, search=search) }}">Sebelumnya</a>
+                    </li>
+                    {% for page_number in range(1, total_pages + 1) %}
+                        <li class="page-item {% if page_number == page %}active{% endif %}">
+                            <a class="page-link" href="{{ url_for('dashboard', page=page_number, search=search) }}">{{ page_number }}</a>
+                        </li>
+                    {% endfor %}
+                    <li class="page-item {% if page >= total_pages %}disabled{% endif %}">
+                        <a class="page-link" href="{{ url_for('dashboard', page=page+1, search=search) }}">Berikutnya</a>
+                    </li>
+                </ul>
+            </nav>
+        {% endif %}
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Delete via fetch — path relatif dari URL dashboard
+        var basePath = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/') + 1);
+
+        document.querySelectorAll('.btn-hapus').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                var id = this.dataset.id;
+                var nama = this.dataset.nama;
+                if (!confirm('Hapus data ' + nama + '? Media juga akan dihapus.')) return;
+
+                var formData = new FormData();
+                fetch(basePath + 'delete/' + id, { method: 'POST', body: formData })
+                    .then(function(resp) {
+                        if (resp.redirected) {
+                            window.location.href = resp.url;
+                            return;
+                        }
+                        return resp.json();
+                    })
+                    .then(function(data) {
+                        if (data && data.ok) {
+                            window.location.reload();
+                        } else if (data && data.error) {
+                            alert('Gagal: ' + data.error);
+                        }
+                    })
+                    .catch(function() {
+                        alert('Gagal menghapus data. Coba lagi.');
+                    });
+            });
+        });
+    });
+    </script>
+</body>
+</html>

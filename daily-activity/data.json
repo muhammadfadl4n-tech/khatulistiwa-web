@@ -1,0 +1,32 @@
+[
+  {
+    "id": "48cb3516-cb14-48ff-8c9a-f0048a75c2bf",
+    "date": "2026-07-18",
+    "time": "09:00",
+    "title": "Sarapan pagi",
+    "note": "Pukul 9 di rumah dengan keluarga",
+    "status": "completed",
+    "created_at": "2026-07-18T03:46:21Z",
+    "updated_at": "2026-07-18T03:46:27Z"
+  },
+  {
+    "id": "9c207ce8-a106-4bcf-a16f-26cee3e4eb97",
+    "date": "2026-07-19",
+    "time": "10:00",
+    "title": "Olahraga",
+    "note": "Jogging 30 menit",
+    "status": "pending",
+    "created_at": "2026-07-18T03:46:21Z",
+    "updated_at": "2026-07-18T03:46:21Z"
+  },
+  {
+    "id": "ea1662ef-2ffe-4ee2-b015-5a220dbd5c74",
+    "date": "2026-07-18",
+    "time": "14:00",
+    "title": "Meeting dengan tim",
+    "note": "Bahasan data LPG Kalbar",
+    "status": "pending",
+    "created_at": "2026-07-18T03:47:10Z",
+    "updated_at": "2026-07-18T03:47:10Z"
+  }
+]
