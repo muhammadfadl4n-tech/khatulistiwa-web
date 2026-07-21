@@ -1,0 +1,363 @@
+{% extends "base.html" %}
+
+{% block title %}Manajemen SPBU — Laporan BBM SPBU{% endblock %}
+
+{% block breadcrumb %}
+<svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+<span class="text-gray-800 font-medium">Manajemen SPBU</span>
+{% endblock %}
+
+{% block mobile_title %}Manajemen SPBU{% endblock %}
+
+{% block content %}
+<div class="space-y-4">
+
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+            <h1 class="text-xl md:text-2xl font-bold text-gray-800">Manajemen SPBU</h1>
+            <p class="text-sm text-gray-500">{{ spbu_list|length }} SPBU terdaftar</p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+            <!-- Export Button -->
+            <div class="relative">
+                <button onclick="toggleDropdown('export-dropdown')" class="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition text-sm">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                    Export
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                </button>
+                <div id="export-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-50">
+                    <a href="{{ url_for('export_spbu_excel') }}" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition">
+                        <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        Export Data SPBU
+                    </a>
+                    <a href="{{ url_for('template_spbu') }}" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition">
+                        <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                        Download Template
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Import Button -->
+            <button onclick="openModal('import-spbu-modal')" class="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition text-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                Import
+            </button>
+            
+            <!-- Add Button -->
+            <button onclick="openModal('add-spbu-modal')" class="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-pertamina-blue to-pertamina-blue-light text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-blue-500/25 transition-all text-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                Tambah SPBU
+            </button>
+        </div>
+    </div>
+
+    <!-- Search & Filter -->
+    <div class="bg-white rounded-xl border border-gray-200 p-4">
+        <div class="flex flex-col sm:flex-row gap-3">
+            <div class="relative flex-1">
+                <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                <input type="text" id="spbu-search" class="form-input pl-10 text-sm" placeholder="Cari SPBU berdasarkan nama atau nomor...">
+            </div>
+            <select id="spbu-city-filter" class="form-input sm:w-auto text-sm">
+                <option value="">Semua Kota</option>
+                {% for k in kabupaten_list %}
+                <option value="{{ k }}">{{ k }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- DESKTOP TABLE -->
+    <!-- ============================================================ -->
+    <div class="hidden md:block bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="bg-gray-50 border-b border-gray-200">
+                    <th class="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Nomor SPBU</th>
+                    <th class="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Nama PT/CV</th>
+                    <th class="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Kota</th>
+                    <th class="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Alamat</th>
+                    <th class="text-center px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Aksi</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {% for s in spbu_list %}
+                <tr class="hover:bg-gray-50 transition">
+                    <td class="px-6 py-4">
+                        <span class="font-mono text-sm font-medium text-pertamina-blue">{{ s.nomor_spbu }}</span>
+                    </td>
+                    <td class="px-6 py-4">
+                        <p class="font-medium text-gray-800">{{ s.nama_pt }}</p>
+                    </td>
+                    <td class="px-6 py-4">
+                        <span class="px-2.5 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded-full">{{ s.kota }}</span>
+                    </td>
+                    <td class="px-6 py-4 text-gray-600 max-w-xs truncate">{{ s.alamat }}</td>
+                    <td class="px-6 py-4 text-center">
+                        <div class="flex items-center justify-center gap-1">
+                            <a href="{{ url_for('spbu_detail', id=s.id) }}" class="p-1.5 text-gray-400 hover:text-pertamina-blue hover:bg-blue-50 rounded-lg transition" title="Lihat Detail">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                            </a>
+                            <button onclick="editSPBU('{{ s.id }}', '{{ s.nomor_spbu }}', '{{ s.nama_pt | replace("'", "\\\\'") }}', '{{ s.kota }}', '{{ (s.alamat or "") | replace("'", "\\\\'") }}', '{{ s.lat or "" }}', '{{ s.lng or "" }}')" class="p-1.5 text-gray-400 hover:text-pertamina-blue hover:bg-blue-50 rounded-lg transition" title="Edit">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                            </button>
+                            <form action="{{ url_for('spbu_hapus', id=s.id) }}" method="POST" class="inline" onsubmit="return confirm('Hapus SPBU {{ s.nama_pt }}? Semua laporan & akun user terkait akan dihapus.')">
+                                <button type="submit" class="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition" title="Hapus">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- MOBILE CARD LIST -->
+    <!-- ============================================================ -->
+    <div class="md:hidden space-y-3">
+        {% for s in spbu_list %}
+        <a href="{{ url_for('spbu_detail', id=s.id) }}" class="data-card block">
+            <div class="flex items-start justify-between">
+                <div>
+                    <p class="font-mono text-xs text-pertamina-blue font-medium">{{ s.nomor_spbu }}</p>
+                    <p class="font-semibold text-gray-800 text-sm mt-0.5">{{ s.nama_pt }}</p>
+                </div>
+                <span class="px-2 py-0.5 bg-gray-100 text-gray-700 text-xs font-medium rounded-full">{{ s.kota }}</span>
+            </div>
+            <p class="text-xs text-gray-500 mt-2 truncate">{{ s.alamat }}</p>
+            <div class="flex gap-2 mt-3">
+                <button onclick="event.preventDefault();editSPBU('{{ s.id }}', '{{ s.nomor_spbu }}', '{{ s.nama_pt | replace("'", "\\\\'") }}', '{{ s.kota }}', '{{ (s.alamat or "") | replace("'", "\\\\'") }}', '{{ s.lat or "" }}', '{{ s.lng or "" }}')" class="flex-1 py-2 text-xs font-medium text-pertamina-blue bg-blue-50 rounded-lg">Edit</button>
+                <form action="{{ url_for('spbu_hapus', id=s.id) }}" method="POST" class="flex-1" onsubmit="return confirm('Hapus SPBU {{ s.nama_pt }}?')">
+                    <button type="submit" class="w-full py-2 text-xs font-medium text-red-600 bg-red-50 rounded-lg">Hapus</button>
+                </form>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+
+</div>
+
+<!-- ============================================================ -->
+<!-- ADD SPBU MODAL -->
+<!-- ============================================================ -->
+<div id="add-spbu-modal" class="modal-backdrop">
+    <div class="modal-content">
+        <div class="sticky top-0 bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between rounded-t-2xl">
+            <h3 class="text-base font-semibold text-gray-800">Tambah SPBU Baru</h3>
+            <button onclick="closeModal('add-spbu-modal')" class="p-1.5 hover:bg-gray-100 rounded-lg transition">
+                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+        <form class="p-6 space-y-4">
+            <div>
+                <label class="form-label">Nomor SPBU</label>
+                <input type="text" class="form-input" placeholder="Contoh: 64.751.03" required>
+            </div>
+            <div>
+                <label class="form-label">Nama PT/CV</label>
+                <input type="text" class="form-input" placeholder="Masukkan nama PT/CV" required>
+            </div>
+            <div>
+                <label class="form-label">Kota / Kabupaten</label>
+                <select class="form-input" required>
+                    <option value="">Pilih kota</option>
+                    {% for k in kabupaten_list %}
+                    <option value="{{ k }}">{{ k }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="form-label">Alamat</label>
+                <textarea class="form-input resize-none" rows="2" placeholder="Masukkan alamat lengkap" required></textarea>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="form-label">Latitude</label>
+                    <input type="text" class="form-input" placeholder="-0.xxxx">
+                </div>
+                <div>
+                    <label class="form-label">Longitude</label>
+                    <input type="text" class="form-input" placeholder="109.xxxx">
+                </div>
+            </div>
+            <div class="flex gap-3 pt-2">
+                <button type="button" onclick="closeModal('add-spbu-modal')" class="flex-1 py-2.5 border border-gray-300 text-gray-700 font-medium rounded-xl text-sm">Batal</button>
+                <button type="submit" class="flex-1 py-2.5 bg-pertamina-blue text-white font-semibold rounded-xl text-sm">Simpan</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- EDIT SPBU MODAL -->
+<!-- ============================================================ -->
+<div id="edit-spbu-modal" class="modal-backdrop">
+    <div class="modal-content">
+        <div class="sticky top-0 bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between rounded-t-2xl">
+            <h3 class="text-base font-semibold text-gray-800">Edit SPBU</h3>
+            <button onclick="closeModal('edit-spbu-modal')" class="p-1.5 hover:bg-gray-100 rounded-lg transition">
+                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+        <form method="POST" class="p-6 space-y-4" id="edit-spbu-form">
+            <input type="hidden" name="id_spbu" id="edit-id">
+            <div>
+                <label class="form-label">Nomor SPBU</label>
+                <input type="text" id="edit-nomor" class="form-input bg-gray-50" readonly>
+            </div>
+            <div>
+                <label class="form-label">Nama PT/CV</label>
+                <input type="text" name="nama_pt" id="edit-nama" class="form-input" required>
+            </div>
+            <div>
+                <label class="form-label">Kota / Kabupaten</label>
+                <select name="kota" id="edit-kota" class="form-input" required>
+                    <option value="">Pilih kota</option>
+                    {% for k in kabupaten_list %}
+                    <option value="{{ k }}">{{ k }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="form-label">Alamat</label>
+                <textarea name="alamat" id="edit-alamat" class="form-input resize-none" rows="2" required></textarea>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="form-label">Latitude</label>
+                    <input type="text" name="lat" id="edit-lat" class="form-input" placeholder="-0.xxxx">
+                </div>
+                <div>
+                    <label class="form-label">Longitude</label>
+                    <input type="text" name="lng" id="edit-lng" class="form-input" placeholder="109.xxxx">
+                </div>
+            </div>
+            <div class="flex gap-3 pt-2">
+                <button type="button" onclick="closeModal('edit-spbu-modal')" class="flex-1 py-2.5 border border-gray-300 text-gray-700 font-medium rounded-xl text-sm">Batal</button>
+                <button type="submit" class="flex-1 py-2.5 bg-pertamina-blue text-white font-semibold rounded-xl text-sm">Simpan Perubahan</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- IMPORT SPBU MODAL -->
+<!-- ============================================================ -->
+<div id="import-spbu-modal" class="modal-backdrop">
+    <div class="modal-content">
+        <div class="sticky top-0 bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between rounded-t-2xl">
+            <h3 class="text-base font-semibold text-gray-800">Import Data SPBU</h3>
+            <button onclick="closeModal('import-spbu-modal')" class="p-1.5 hover:bg-gray-100 rounded-lg transition">
+                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+        <form method="POST" action="{{ url_for('import_spbu_excel') }}" enctype="multipart/form-data" class="p-6 space-y-4">
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <p class="text-sm font-medium text-pertamina-blue mb-2">Panduan Import:</p>
+                <ul class="text-xs text-gray-600 space-y-1">
+                    <li>• Download template terlebih dahulu</li>
+                    <li>• Isi data sesuai format template</li>
+                    <li>• Kolom wajib: Nomor SPBU, Nama PT, Kota</li>
+                    <li>• Format file: .xlsx</li>
+                    <li>• Data duplikat akan dilewati</li>
+                </ul>
+            </div>
+            
+            <div>
+                <label class="form-label">File Excel</label>
+                <input type="file" name="file" accept=".xlsx,.xls" class="form-input" required>
+            </div>
+            
+            <div class="flex gap-3 pt-2">
+                <a href="{{ url_for('template_spbu') }}" class="flex-1 py-2.5 border border-gray-300 text-gray-700 font-medium rounded-xl text-sm text-center hover:bg-gray-50 transition">
+                    Download Template
+                </a>
+                <button type="submit" class="flex-1 py-2.5 bg-pertamina-blue text-white font-semibold rounded-xl text-sm">
+                    Import Data
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts_extra %}
+<script>
+function toggleDropdown(id) {
+    const dropdown = document.getElementById(id);
+    dropdown.classList.toggle('hidden');
+}
+
+function editSPBU(id, nomor, nama, kota, alamat, lat, lng) {
+    document.getElementById('edit-id').value = id;
+    document.getElementById('edit-nomor').value = nomor;
+    document.getElementById('edit-nama').value = nama;
+    document.getElementById('edit-alamat').value = alamat;
+    document.getElementById('edit-lat').value = lat || '';
+    document.getElementById('edit-lng').value = lng || '';
+    
+    // Set kota dropdown
+    const kotaSelect = document.getElementById('edit-kota');
+    for (let opt of kotaSelect.options) {
+        opt.selected = (opt.value === kota);
+    }
+    
+    // Set form action
+    document.getElementById('edit-spbu-form').action = '/spbu/' + id + '/edit';
+    
+    openModal('edit-spbu-modal');
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', (e) => {
+    const dropdown = document.getElementById('export-dropdown');
+    if (dropdown && !e.target.closest('.relative')) {
+        dropdown.classList.add('hidden');
+    }
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+    const searchInput = document.getElementById('spbu-search');
+    const cityFilter = document.getElementById('spbu-city-filter');
+    const rows = document.querySelectorAll('tbody tr');
+    const cards = document.querySelectorAll('.data-card');
+    
+    function filterSPBU() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const cityTerm = cityFilter.value;
+        
+        // Filter desktop table rows
+        rows.forEach(row => {
+            const nomor = row.querySelector('td:nth-child(1) span')?.textContent.toLowerCase() || '';
+            const nama = row.querySelector('td:nth-child(2) p')?.textContent.toLowerCase() || '';
+            const kota = row.querySelector('td:nth-child(3) span')?.textContent || '';
+            
+            const matchSearch = !searchTerm || nomor.includes(searchTerm) || nama.includes(searchTerm);
+            const matchCity = !cityTerm || kota === cityTerm;
+            
+            row.style.display = (matchSearch && matchCity) ? '' : 'none';
+        });
+        
+        // Filter mobile cards
+        cards.forEach(card => {
+            const nomor = card.querySelector('p.font-mono')?.textContent.toLowerCase() || '';
+            const nama = card.querySelector('p.font-semibold')?.textContent.toLowerCase() || '';
+            const kota = card.querySelector('span.bg-gray-100')?.textContent || '';
+            
+            const matchSearch = !searchTerm || nomor.includes(searchTerm) || nama.includes(searchTerm);
+            const matchCity = !cityTerm || kota === cityTerm;
+            
+            card.style.display = (matchSearch && matchCity) ? '' : 'none';
+        });
+    }
+    
+    searchInput.addEventListener('input', filterSPBU);
+    cityFilter.addEventListener('change', filterSPBU);
+});
+</script>
+{% endblock %}

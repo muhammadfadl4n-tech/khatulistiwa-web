@@ -1,0 +1,579 @@
+/* ============================================================
+   CUSTOM STYLES — Laporan Pembongkaran BBM SPBU
+   ============================================================ */
+
+/* ============================================================
+   SIDEBAR
+   ============================================================ */
+.sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.625rem 0.75rem;
+    border-radius: 0.75rem;
+    font-size: 0.875rem;
+    color: rgba(255, 255, 255, 0.75);
+    transition: all 0.15s ease;
+}
+
+.sidebar-link:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+}
+
+.sidebar-link.active {
+    background: rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+    font-weight: 600;
+}
+
+/* ============================================================
+   BOTTOM NAVIGATION (Mobile)
+   ============================================================ */
+.bottom-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.125rem;
+    padding: 0.375rem 0.75rem;
+    font-size: 0.625rem;
+    color: #6b7280;
+    transition: color 0.15s ease;
+    min-width: 44px;
+    min-height: 44px;
+    justify-content: center;
+}
+
+.bottom-nav-item span {
+    line-height: 1;
+}
+
+.bottom-nav-item:hover,
+.bottom-nav-item.active {
+    color: #1E40AF;
+}
+
+.bottom-nav-fab {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    margin-top: -1.25rem;
+    background: linear-gradient(135deg, #DC2626, #B91C1C);
+    color: white;
+    border-radius: 50%;
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.bottom-nav-fab:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 16px rgba(220, 38, 38, 0.5);
+}
+
+/* Safe area for iPhone notch */
+.safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+/* ============================================================
+   CARDS
+   ============================================================ */
+.stat-card {
+    background: white;
+    border-radius: 1rem;
+    padding: 1.25rem;
+    border: 1px solid #e5e7eb;
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.stat-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    transform: translateY(-1px);
+}
+
+.stat-card .stat-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ============================================================
+   STATUS BADGES
+   ============================================================ */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.625rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    line-height: 1;
+}
+
+.badge-draft {
+    background: #f3f4f6;
+    color: #6b7280;
+}
+
+.badge-submitted {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.badge-verified {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+/* ============================================================
+   FORM ELEMENTS
+   ============================================================ */
+.form-input {
+    width: 100%;
+    padding: 0.625rem 0.875rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.75rem;
+    font-size: 0.875rem;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    background: white;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-label {
+    display: block;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 0.375rem;
+}
+
+/* ============================================================
+   UPLOAD AREA
+   ============================================================ */
+.upload-zone {
+    border: 2px dashed #d1d5db;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    text-align: center;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    background: #fafafa;
+}
+
+.upload-zone:hover,
+.upload-zone.dragover {
+    border-color: #3b82f6;
+    background: #eff6ff;
+}
+
+.upload-zone .upload-icon {
+    width: 3rem;
+    height: 3rem;
+    margin: 0 auto 0.75rem;
+    color: #9ca3af;
+}
+
+/* ============================================================
+   DATA CARD (mobile replacement for table rows)
+   ============================================================ */
+.data-card {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 1rem;
+    padding: 1rem;
+    transition: box-shadow 0.15s ease;
+}
+
+.data-card:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.data-card + .data-card {
+    margin-top: 0.5rem;
+}
+
+/* ============================================================
+   MODAL
+   ============================================================ */
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 100;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+}
+
+.modal-backdrop.open {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.modal-content {
+    background: white;
+    width: 100%;
+    max-height: 90vh;
+    border-radius: 1.5rem 1.5rem 0 0;
+    overflow-y: auto;
+    transform: translateY(100%);
+    transition: transform 0.3s ease;
+}
+
+.modal-backdrop.open .modal-content {
+    transform: translateY(0);
+}
+
+/* Desktop modal */
+@media (min-width: 640px) {
+    .modal-backdrop {
+        align-items: center;
+        padding: 1rem;
+    }
+
+    .modal-content {
+        max-width: 32rem;
+        border-radius: 1.5rem;
+        transform: translateY(1rem) scale(0.98);
+        opacity: 0;
+        transition: transform 0.2s ease, opacity 0.2s ease;
+    }
+
+    .modal-backdrop.open .modal-content {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+}
+
+/* ============================================================
+   LIGHTBOX / GALLERY
+   ============================================================ */
+.gallery-scroll {
+    display: flex;
+    gap: 0.75rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 0.5rem;
+}
+
+.gallery-scroll::-webkit-scrollbar {
+    height: 4px;
+}
+
+.gallery-scroll::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 2px;
+}
+
+.gallery-item {
+    flex-shrink: 0;
+    width: 140px;
+    height: 140px;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    scroll-snap-align: start;
+    cursor: pointer;
+    position: relative;
+}
+
+.gallery-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.2s ease;
+}
+
+.gallery-item:hover img {
+    transform: scale(1.05);
+}
+
+/* ============================================================
+   TIMELINE
+   ============================================================ */
+.timeline-item {
+    position: relative;
+    padding-left: 2rem;
+    padding-bottom: 1.5rem;
+}
+
+.timeline-item::before {
+    content: '';
+    position: absolute;
+    left: 0.5rem;
+    top: 0.5rem;
+    bottom: 0;
+    width: 2px;
+    background: #e5e7eb;
+}
+
+.timeline-item:last-child::before {
+    display: none;
+}
+
+.timeline-dot {
+    position: absolute;
+    left: 0;
+    top: 0.25rem;
+    width: 1.25rem;
+    height: 1.25rem;
+    border-radius: 50%;
+    border: 2px solid #d1d5db;
+    background: white;
+}
+
+.timeline-dot.active {
+    border-color: #1e40af;
+    background: #1e40af;
+}
+
+.timeline-dot.success {
+    border-color: #059669;
+    background: #059669;
+}
+
+/* ============================================================
+   UTILITY CLASSES
+   ============================================================ */
+.truncate-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Print styles */
+@media print {
+    .sidebar,
+    #sidebar-overlay,
+    header,
+    nav.fixed,
+    .no-print {
+        display: none !important;
+    }
+
+    main {
+        padding: 0 !important;
+    }
+
+    .lg\:ml-64 {
+        margin-left: 0 !important;
+    }
+}
+
+/* ============================================================
+   SKELETON LOADING
+   ============================================================ */
+.skeleton {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s ease-in-out infinite;
+    border-radius: 0.5rem;
+}
+
+@keyframes skeleton-loading {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+.skeleton-text {
+    height: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.skeleton-text-sm {
+    height: 0.75rem;
+    margin-bottom: 0.375rem;
+}
+
+.skeleton-heading {
+    height: 1.5rem;
+    width: 60%;
+    margin-bottom: 0.75rem;
+}
+
+.skeleton-card {
+    height: 6rem;
+    border-radius: 1rem;
+}
+
+.skeleton-chart {
+    height: 12rem;
+    border-radius: 0.75rem;
+}
+
+.skeleton-avatar {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+}
+
+/* Loading overlay */
+.loading-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: inherit;
+    z-index: 10;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+}
+
+.loading-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Spinner */
+.spinner {
+    width: 2rem;
+    height: 2rem;
+    border: 3px solid #e5e7eb;
+    border-top-color: #1E40AF;
+    border-radius: 50%;
+    animation: spinner-rotate 0.8s linear infinite;
+}
+
+@keyframes spinner-rotate {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ============================================================
+   DARK MODE
+   ============================================================ */
+.dark {
+    --bg-primary: #1f2937;
+    --bg-secondary: #111827;
+    --bg-card: #374151;
+    --text-primary: #f9fafb;
+    --text-secondary: #d1d5db;
+    --border-color: #4b5563;
+}
+
+.dark body {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+.dark .bg-white {
+    background-color: var(--bg-card) !important;
+}
+
+.dark .bg-gray-50 {
+    background-color: var(--bg-secondary) !important;
+}
+
+.dark .bg-gray-100 {
+    background-color: var(--bg-primary) !important;
+}
+
+.dark .text-gray-800 {
+    color: var(--text-primary) !important;
+}
+
+.dark .text-gray-600 {
+    color: var(--text-secondary) !important;
+}
+
+.dark .text-gray-500 {
+    color: #9ca3af !important;
+}
+
+.dark .border-gray-200 {
+    border-color: var(--border-color) !important;
+}
+
+.dark .border-gray-100 {
+    border-color: var(--border-color) !important;
+}
+
+.dark .form-input {
+    background-color: var(--bg-primary);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+.dark .form-input:focus {
+    border-color: #3b82f6;
+}
+
+.dark .stat-card {
+    background-color: var(--bg-card);
+    border-color: var(--border-color);
+}
+
+.dark .data-card {
+    background-color: var(--bg-card);
+    border-color: var(--border-color);
+}
+
+.dark .sidebar {
+    background-color: #1e3a8a;
+}
+
+.dark header {
+    background-color: var(--bg-card);
+    border-color: var(--border-color);
+}
+
+.dark nav.fixed {
+    background-color: var(--bg-card);
+    border-color: var(--border-color);
+}
+
+/* Dark mode toggle button */
+.dark-mode-toggle {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.dark-mode-toggle:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.dark .dark-mode-toggle:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Smooth transitions */
+* {
+    transition-property: background-color, border-color, color;
+    transition-duration: 0.2s;
+    transition-timing-function: ease;
+}
+
+/* Disable transitions for specific elements */
+button, a, input, select, textarea {
+    transition-property: all;
+    transition-duration: 0.15s;
+}

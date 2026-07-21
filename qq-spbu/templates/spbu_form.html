@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="id" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form Laporan Pembongkaran BBM — SPBU</title>
+
+    <!-- Tailwind CSS -->
+    <script src="/static/js/tailwind.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        pertamina: {
+                            blue: '#1E40AF',
+                            'blue-dark': '#1E3A8A',
+                            'blue-light': '#3B82F6',
+                            red: '#DC2626',
+                            'red-dark': '#B91C1C',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <style>
+        /* Google Form style */
+        .form-section {
+            background: white;
+            border-radius: 0.75rem;
+            border: 1px solid #e5e7eb;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .form-section:hover {
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .form-header {
+            background: linear-gradient(135deg, #1E40AF 0%, #1E3A8A 100%);
+            color: white;
+            padding: 2rem 1.5rem;
+            border-radius: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .progress-bar {
+            height: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 1rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: white;
+            transition: width 0.3s ease;
+        }
+
+        .required-star {
+            color: #DC2626;
+            margin-left: 0.25rem;
+        }
+
+        .upload-area {
+            border: 2px dashed #d1d5db;
+            border-radius: 0.5rem;
+            padding: 2rem 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: #fafafa;
+        }
+
+        .upload-area:hover {
+            border-color: #3b82f6;
+            background: #eff6ff;
+        }
+
+        .upload-area.dragover {
+            border-color: #3b82f6;
+            background: #dbeafe;
+        }
+
+        @media (max-width: 640px) {
+            .form-section {
+                padding: 1rem;
+            }
+            .form-header {
+                padding: 1.5rem 1rem;
+            }
+        }
+    </style>
+</head>
+<body class="h-full bg-gray-50">
+
+    <!-- Top Bar -->
+    <div class="bg-white border-b border-gray-200 sticky top-0 z-10">
+        <div class="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-pertamina-red rounded-lg flex items-center justify-center">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-sm font-semibold text-gray-800">Laporan Pembongkaran BBM</h1>
+                    <p class="text-xs text-gray-500">{{ spbu.nama_pt if spbu else 'SPBU' }}</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <div class="hidden sm:flex items-center gap-2 text-xs text-gray-600">
+                    <div class="w-6 h-6 rounded-full bg-pertamina-blue flex items-center justify-center text-white text-[10px] font-bold">
+                        {{ current_user.nama_lengkap[0] if current_user else 'U' }}
+                    </div>
+                    <span>{{ current_user.nama_lengkap if current_user else 'User' }}</span>
+                </div>
+                <a href="{{ url_for('laporan_list') }}" class="text-xs text-pertamina-blue hover:underline font-medium">
+                    Riwayat →
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form Container -->
+    <div class="max-w-3xl mx-auto px-4 py-6 pb-24">
+
+        <!-- Form Header -->
+        <div class="form-header">
+            <h1 class="text-xl md:text-2xl font-bold mb-2">Form Laporan Pembongkaran BBM</h1>
+            <p class="text-sm text-blue-100">Isi data pembongkaran BBM SPBU Anda dengan lengkap dan benar.</p>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressBar" style="width: 0%"></div>
+            </div>
+            <p class="text-xs text-blue-200 mt-2" id="progressText">0% selesai</p>
+        </div>
+
+        <!-- Form -->
+        <form action="{{ url_for('laporan_baru') }}" method="POST" enctype="multipart/form-data" id="laporanForm">
+
+            <!-- Section 1: Informasi SPBU -->
+            <div class="form-section" data-section="1">
+                <h2 class="text-base font-semibold text-gray-800 mb-1 flex items-center gap-2">
+                    <span class="w-6 h-6 rounded-full bg-pertamina-blue text-white flex items-center justify-center text-xs font-bold">1</span>
+                    Informasi SPBU
+                </h2>
+                <p class="text-xs text-gray-500 mb-4 ml-8">Data SPBU Anda (otomatis dari akun yang login)</p>
+
+                <!-- Info User Login -->
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4 ml-8">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-pertamina-blue flex items-center justify-center text-white text-sm font-bold shrink-0">
+                            {{ current_user.nama_lengkap[0] if current_user else 'U' }}
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-800">{{ current_user.nama_lengkap if current_user else 'User SPBU' }}</p>
+                            <p class="text-xs text-gray-500">{{ current_user.email if current_user else 'user@spbu.com' }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 ml-8">
+                    <div>
+                        <label class="form-label">Nama PT/CV SPBU</label>
+                        <input type="text" class="form-input bg-gray-50 font-medium" value="{{ spbu.nama_pt if spbu else '' }}" readonly>
+                    </div>
+                    <div>
+                        <label class="form-label">Nomor SPBU</label>
+                        <input type="text" class="form-input bg-gray-50 font-medium font-mono" value="{{ spbu.nomor_spbu if spbu else '' }}" readonly>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="form-label">Kota / Kabupaten</label>
+                        <input type="text" class="form-input bg-gray-50" value="{{ spbu.kota if spbu else '' }}" readonly>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="form-label">Alamat SPBU</label>
+                        <input type="text" class="form-input bg-gray-50" value="{{ spbu.alamat if spbu else '' }}" readonly>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 2: Tanggal & Jenis BBM -->
+            <div class="form-section" data-section="2">
+                <h2 class="text-base font-semibold text-gray-800 mb-1 flex items-center gap-2">
+                    <span class="w-6 h-6 rounded-full bg-pertamina-blue text-white flex items-center justify-center text-xs font-bold">2</span>
+                    Tanggal & Jenis BBM
+                </h2>
+                <p class="text-xs text-gray-500 mb-4 ml-8">Isi tanggal dan pilih jenis BBM yang dibongkar</p>
+
+                <div class="ml-8 space-y-4">
+                    <div>
+                        <label class="form-label">Tanggal Pembongkaran<span class="required-star">*</span></label>
+                        <input type="date" name="tanggal" class="form-input max-w-xs" value="{{ '2026-07-01' }}" required>
+                    </div>
+
+                    <div>
+                        <label class="form-label">Jenis Produk BBM<span class="required-star">*</span></label>
+                        <p class="text-xs text-gray-500 mb-2">Pilih semua yang sesuai</p>
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                            {% for bbm in jenis_bbm_list %}
+                            <label class="flex items-center gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:border-pertamina-blue hover:bg-blue-50/50 transition has-[:checked]:border-pertamina-blue has-[:checked]:bg-blue-50">
+                                <input type="checkbox" name="jenis_bbm" value="{{ bbm }}" class="w-4 h-4 rounded border-gray-300 text-pertamina-blue focus:ring-pertamina-blue">
+                                <span class="text-sm font-medium text-gray-700">{{ bbm }}</span>
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 3: Foto Pembongkaran -->
+            <div class="form-section" data-section="3">
+                <h2 class="text-base font-semibold text-gray-800 mb-1 flex items-center gap-2">
+                    <span class="w-6 h-6 rounded-full bg-pertamina-blue text-white flex items-center justify-center text-xs font-bold">3</span>
+                    Foto Pembongkaran BBM
+                </h2>
+                <p class="text-xs text-gray-500 mb-4 ml-8">Upload foto proses pembongkaran<span class="required-star">*</span></p>
+
+                <div class="ml-8">
+                    <div id="zone-pembongkaran" class="upload-area">
+                        <svg class="w-12 h-12 mx-auto text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                        </svg>
+                        <p class="text-sm text-gray-600 font-medium">Klik untuk upload atau drag foto ke sini</p>
+                        <p class="text-xs text-gray-400 mt-1">PNG, JPG, PDF • Maks 10 file • Maks 100MB/file</p>
+                    </div>
+                    <input type="file" id="input-pembongkaran" name="foto_pembongkaran" multiple accept="image/*,.pdf" class="hidden">
+                    <div id="preview-pembongkaran" class="gallery-scroll mt-3"></div>
+                </div>
+            </div>
+
+            <!-- Section 4: Foto SPP -->
+            <div class="form-section" data-section="4">
+                <h2 class="text-base font-semibold text-gray-800 mb-1 flex items-center gap-2">
+                    <span class="w-6 h-6 rounded-full bg-pertamina-blue text-white flex items-center justify-center text-xs font-bold">4</span>
+                    Foto SPP (Surat Perintah Pengiriman)
+                </h2>
+                <p class="text-xs text-gray-500 mb-4 ml-8">Upload foto dokumen SPP<span class="required-star">*</span></p>
+
+                <div class="ml-8">
+                    <div id="zone-spp" class="upload-area">
+                        <svg class="w-12 h-12 mx-auto text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                        </svg>
+                        <p class="text-sm text-gray-600 font-medium">Klik untuk upload atau drag foto ke sini</p>
+                        <p class="text-xs text-gray-400 mt-1">PNG, JPG, PDF • Maks 10 file</p>
+                    </div>
+                    <input type="file" id="input-spp" name="foto_spp" multiple accept="image/*,.pdf" class="hidden">
+                    <div id="preview-spp" class="gallery-scroll mt-3"></div>
+                </div>
+            </div>
+
+            <!-- Section 5: Foto Dipping -->
+            <div class="form-section" data-section="5">
+                <h2 class="text-base font-semibold text-gray-800 mb-1 flex items-center gap-2">
+                    <span class="w-6 h-6 rounded-full bg-pertamina-blue text-white flex items-center justify-center text-xs font-bold">5</span>
+                    Foto Dipping (Pengukuran Tangki)
+                </h2>
+                <p class="text-xs text-gray-500 mb-4 ml-8">Upload foto proses dipping<span class="required-star">*</span></p>
+
+                <div class="ml-8">
+                    <div id="zone-dipping" class="upload-area">
+                        <svg class="w-12 h-12 mx-auto text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                        </svg>
+                        <p class="text-sm text-gray-600 font-medium">Klik untuk upload atau drag foto ke sini</p>
+                        <p class="text-xs text-gray-400 mt-1">PNG, JPG • Maks 10 file</p>
+                    </div>
+                    <input type="file" id="input-dipping" name="foto_dipping" multiple accept="image/*" class="hidden">
+                    <div id="preview-dipping" class="gallery-scroll mt-3"></div>
+                </div>
+            </div>
+
+            <!-- Section 6: Foto ATG -->
+            <div class="form-section" data-section="6">
+                <h2 class="text-base font-semibold text-gray-800 mb-1 flex items-center gap-2">
+                    <span class="w-6 h-6 rounded-full bg-pertamina-blue text-white flex items-center justify-center text-xs font-bold">6</span>
+                    Foto ATG (Automatic Tank Gauge)
+                </h2>
+                <p class="text-xs text-gray-500 mb-4 ml-8">Upload foto tampilan ATG<span class="required-star">*</span></p>
+
+                <div class="ml-8">
+                    <div id="zone-atg" class="upload-area">
+                        <svg class="w-12 h-12 mx-auto text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                        </svg>
+                        <p class="text-sm text-gray-600 font-medium">Klik untuk upload atau drag foto ke sini</p>
+                        <p class="text-xs text-gray-400 mt-1">PNG, JPG • Maks 10 file</p>
+                    </div>
+                    <input type="file" id="input-atg" name="foto_atg" multiple accept="image/*" class="hidden">
+                    <div id="preview-atg" class="gallery-scroll mt-3"></div>
+                </div>
+            </div>
+
+            <!-- Section 7: Catatan -->
+            <div class="form-section" data-section="7">
+                <h2 class="text-base font-semibold text-gray-800 mb-1 flex items-center gap-2">
+                    <span class="w-6 h-6 rounded-full bg-pertamina-blue text-white flex items-center justify-center text-xs font-bold">7</span>
+                    Catatan Tambahan
+                </h2>
+                <p class="text-xs text-gray-500 mb-4 ml-8">Catatan opsional terkait pembongkaran</p>
+
+                <div class="ml-8">
+                    <textarea name="catatan" rows="3" class="form-input resize-none" placeholder="Tulis catatan di sini (opsional)...">{{ '' }}</textarea>
+                </div>
+            </div>
+
+            <!-- Submit Buttons -->
+            <div class="flex flex-col sm:flex-row gap-3 mt-6">
+                <button type="submit" name="action" value="draft" class="flex-1 px-6 py-3 bg-white border border-gray-300 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition text-sm">
+                    💾 Simpan Draft
+                </button>
+                <button type="submit" name="action" value="submit" class="flex-1 px-6 py-3 bg-gradient-to-r from-pertamina-blue to-pertamina-blue-light text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-blue-500/25 transition-all text-sm">
+                    📤 Kirim Laporan
+                </button>
+            </div>
+
+            <p class="text-xs text-gray-400 text-center mt-4">
+                Form ini dilindungi dan data Anda akan diverifikasi oleh tim Pertamina.
+            </p>
+        </form>
+    </div>
+
+    <!-- Fixed Bottom Bar (mobile) -->
+    <div class="sm:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-3 flex gap-2 z-20">
+        <button type="button" onclick="window.history.back()" class="flex-1 py-2.5 border border-gray-300 text-gray-700 text-sm font-medium rounded-xl">
+            Batal
+        </button>
+        <button type="submit" form="laporanForm" name="action" value="submit" class="flex-1 py-2.5 bg-pertamina-blue text-white text-sm font-semibold rounded-xl">
+            Kirim
+        </button>
+    </div>
+
+    <script>
+        // Upload handlers
+        const categories = ['pembongkaran', 'spp', 'dipping', 'atg'];
+
+        categories.forEach(cat => {
+            const zone = document.getElementById(`zone-${cat}`);
+            const input = document.getElementById(`input-${cat}`);
+            const preview = document.getElementById(`preview-${cat}`);
+
+            if (!zone || !input || !preview) return;
+
+            zone.addEventListener('click', () => input.click());
+
+            zone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                zone.classList.add('dragover');
+            });
+
+            zone.addEventListener('dragleave', () => {
+                zone.classList.remove('dragover');
+            });
+
+            zone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                zone.classList.remove('dragover');
+                const files = e.dataTransfer.files;
+
+                // Check 10 file limit
+                if (files.length > 10) {
+                    alert(`Maksimal 10 file per kategori. Anda mencoba drop ${files.length} file.`);
+                    return;
+                }
+
+                // Check 100MB per file limit
+                const maxSize = 100 * 1024 * 1024; // 100MB
+                const oversizedFiles = Array.from(files).filter(f => f.size > maxSize);
+                if (oversizedFiles.length > 0) {
+                    alert(`Ukuran file maksimal 100MB. Ada ${oversizedFiles.length} file yang melebihi batas.`);
+                    return;
+                }
+
+                if (files.length > 0) {
+                    const dt = new DataTransfer();
+                    Array.from(files).forEach(f => dt.items.add(f));
+                    input.files = dt.files;
+                    input.dispatchEvent(new Event('change'));
+                }
+            });
+
+            input.addEventListener('change', (e) => {
+                preview.innerHTML = '';
+                const files = Array.from(e.target.files);
+
+                // Check 10 file limit
+                if (files.length > 10) {
+                    alert(`Maksimal 10 file per kategori. Anda memilih ${files.length} file.`);
+                    input.value = '';
+                    updateProgress();
+                    return;
+                }
+
+                // Check 100MB per file limit
+                const maxSize = 100 * 1024 * 1024; // 100MB
+                const oversizedFiles = files.filter(f => f.size > maxSize);
+                if (oversizedFiles.length > 0) {
+                    alert(`Ukuran file maksimal 100MB. Ada ${oversizedFiles.length} file yang melebihi batas.`);
+                    input.value = '';
+                    updateProgress();
+                    return;
+                }
+
+                files.forEach((file, index) => {
+                    if (!file.type.startsWith('image/')) return;
+
+                    const reader = new FileReader();
+                    reader.onload = (ev) => {
+                        const div = document.createElement('div');
+                        div.className = 'gallery-item';
+                        div.innerHTML = `
+                            <img src="${ev.target.result}" alt="${file.name}">
+                            <div class="absolute inset-0 bg-black/0 hover:bg-black/20 transition flex items-center justify-center opacity-0 hover:opacity-100">
+                                <button type="button" onclick="this.closest('.gallery-item').remove()" class="bg-white/90 rounded-full p-1.5 hover:bg-white transition">
+                                    <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </button>
+                            </div>
+                        `;
+                        preview.appendChild(div);
+                    };
+                    reader.readAsDataURL(file);
+                });
+
+                updateProgress();
+            });
+        });
+
+        // Progress bar
+        function updateProgress() {
+            const form = document.getElementById('laporanForm');
+            const totalSections = 7;
+            let completedSections = 0;
+
+            // Section 1: SPBU info (always filled)
+            completedSections++;
+
+            // Section 2: Tanggal & Jenis BBM
+            const tanggal = form.querySelector('[name="tanggal"]');
+            const jenisBbm = form.querySelectorAll('[name="jenis_bbm"]:checked');
+            if (tanggal && tanggal.value) completedSections++;
+            if (jenisBbm.length > 0) completedSections++;
+
+            // Section 3-6: Upload foto
+            categories.forEach(cat => {
+                const input = document.getElementById(`input-${cat}`);
+                if (input && input.files && input.files.length > 0) {
+                    completedSections++;
+                }
+            });
+
+            // Section 7: Catatan (optional, always count as completed)
+            completedSections++;
+
+            const progress = Math.round((completedSections / (totalSections + 1)) * 100);
+            const progressBar = document.getElementById('progressBar');
+            const progressText = document.getElementById('progressText');
+
+            if (progressBar) progressBar.style.width = progress + '%';
+            if (progressText) progressText.textContent = progress + '% selesai';
+        }
+
+        // Update progress on form change
+        document.getElementById('laporanForm').addEventListener('change', updateProgress);
+        document.getElementById('laporanForm').addEventListener('input', updateProgress);
+
+        // Form validation
+        document.getElementById('laporanForm').addEventListener('submit', (e) => {
+            const action = e.submitter?.value;
+
+            if (action === 'submit') {
+                const tanggal = e.target.querySelector('[name="tanggal"]');
+                const jenisBbm = e.target.querySelectorAll('[name="jenis_bbm"]:checked');
+
+                let errors = [];
+
+                if (!tanggal.value) errors.push('Tanggal pembongkaran wajib diisi');
+                if (jenisBbm.length === 0) errors.push('Pilih minimal satu jenis BBM');
+                
+                // Check all required uploads
+                const requiredUploads = [
+                    { id: 'input-pembongkaran', name: 'Foto Pembongkaran' },
+                    { id: 'input-spp', name: 'Foto SPP' },
+                    { id: 'input-dipping', name: 'Foto Dipping' },
+                    { id: 'input-atg', name: 'Foto ATG' }
+                ];
+                
+                requiredUploads.forEach(upload => {
+                    const input = document.getElementById(upload.id);
+                    if (!input.files || input.files.length === 0) {
+                        errors.push(`${upload.name} wajib diupload`);
+                    }
+                });
+
+                if (errors.length > 0) {
+                    e.preventDefault();
+                    alert('Error:\n\n' + errors.join('\n'));
+                    return;
+                }
+
+                if (!confirm('Apakah Anda yakin ingin mengirim laporan ini?')) {
+                    e.preventDefault();
+                    return;
+                }
+            }
+        });
+    </script>
+</body>
+</html>

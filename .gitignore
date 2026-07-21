@@ -5,3 +5,13 @@ dist/
 *.log
 __pycache__/
 *.pyc
+qq-spbu/client_secret.json
+qq-spbu/gdrive_auth.py
+qq-spbu/gdrive_step1.py
+qq-spbu/gdrive_step2.py
+qq-spbu/save_token.py
+qq-spbu/gdrive_flow.pickle
+qq-spbu/gdrive_flow.pkl
+qq-spbu/gdrive_state.json
+qq-spbu/gdrive_verifier.txt
+

@@ -1,0 +1,314 @@
+{% extends "base.html" %}
+
+{% block title %}{{ spbu.nama_pt }} — Laporan BBM SPBU{% endblock %}
+
+{% block breadcrumb %}
+<svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+<span class="text-gray-800 font-medium">{{ spbu.nomor_spbu }}</span>
+{% endblock %}
+
+{% block mobile_title %}Detail SPBU{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto space-y-6">
+
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+            <h1 class="text-xl md:text-2xl font-bold text-gray-800">{{ spbu.nama_pt }}</h1>
+            <p class="text-sm text-gray-500">{{ spbu.nomor_spbu }} &bull; {{ spbu.kota }}</p>
+        </div>
+        {% if current_user.role in ('administrator', 'pertamina') %}
+        <button onclick="openModal('edit-spbu-modal')" class="inline-flex items-center gap-2 px-4 py-2 bg-pertamina-blue text-white text-sm font-medium rounded-xl hover:bg-pertamina-blue-dark transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+            Edit SPBU
+        </button>
+        {% endif %}
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- ============================================================ -->
+        <!-- LEFT: Info + Map -->
+        <!-- ============================================================ -->
+        <div class="lg:col-span-2 space-y-6">
+
+            <!-- Info SPBU -->
+            <div class="bg-white rounded-xl border border-gray-200 p-4 md:p-6">
+                <h2 class="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                    <svg class="w-4 h-4 text-pertamina-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    Informasi SPBU
+                </h2>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-xs text-gray-500">Nama PT/CV</p>
+                        <p class="text-sm font-medium text-gray-800">{{ spbu.nama_pt }}</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-500">Nomor SPBU</p>
+                        <p class="text-sm font-medium text-gray-800">{{ spbu.nomor_spbu }}</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-500">Kota / Kabupaten</p>
+                        <p class="text-sm font-medium text-gray-800">{{ spbu.kota }}</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-500">Alamat</p>
+                        <p class="text-sm font-medium text-gray-800">{{ spbu.alamat }}</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-500">Latitude</p>
+                        <p class="text-sm font-medium text-gray-800">{{ spbu.lat }}</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-500">Longitude</p>
+                        <p class="text-sm font-medium text-gray-800">{{ spbu.lng }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Map -->
+            <div class="bg-white rounded-xl border border-gray-200 p-4 md:p-6">
+                <h2 class="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                    <svg class="w-4 h-4 text-pertamina-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    Lokasi SPBU
+                </h2>
+                <div id="spbu-map" class="h-[250px] md:h-[300px] rounded-xl overflow-hidden"></div>
+            </div>
+
+            <!-- Riwayat Laporan -->
+            <div class="bg-white rounded-xl border border-gray-200">
+                <div class="flex items-center justify-between p-4 md:p-6 border-b border-gray-100">
+                    <h2 class="text-sm font-semibold text-gray-800">Riwayat Laporan</h2>
+                    <span class="text-xs text-gray-500">{{ laporan_list|length }} laporan</span>
+                </div>
+
+                <!-- Desktop: Table -->
+                <div class="hidden md:block overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead>
+                            <tr class="bg-gray-50 border-b border-gray-100">
+                                <th class="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Tanggal</th>
+                                <th class="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Jenis BBM</th>
+                                <th class="text-center px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Foto</th>
+                                <th class="text-center px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Status</th>
+                                <th class="text-center px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-50">
+                            {% for l in laporan_list %}
+                            <tr class="hover:bg-gray-50 transition">
+                                <td class="px-6 py-3 text-gray-600">{{ l.tanggal }}</td>
+                                <td class="px-6 py-3">
+                                    <div class="flex flex-wrap gap-1">
+                                        {% for bbm in l.jenis_bbm[:3] %}
+                                        <span class="px-2 py-0.5 bg-blue-50 text-pertamina-blue text-xs rounded-full">{{ bbm }}</span>
+                                        {% endfor %}
+                                    </div>
+                                </td>
+                                <td class="px-6 py-3 text-center text-gray-600">{{ l.foto_count }}</td>
+                                <td class="px-6 py-3 text-center">
+                                    {% if l.status == 'draft' %}
+                                    <span class="badge badge-draft">Draft</span>
+                                    {% elif l.status == 'submitted' %}
+                                    <span class="badge badge-submitted">Submitted</span>
+                                    {% else %}
+                                    <span class="badge badge-verified">Verified</span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 py-3 text-center">
+                                    <a href="{{ url_for('laporan_detail', id=l.id) }}" class="text-pertamina-blue hover:underline text-xs font-medium">Detail</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Mobile: Card List -->
+                <div class="md:hidden p-4 space-y-3">
+                    {% for l in laporan_list %}
+                    <a href="{{ url_for('laporan_detail', id=l.id) }}" class="data-card block">
+                        <div class="flex items-start justify-between mb-2">
+                            <p class="text-sm font-medium text-gray-800">{{ l.tanggal }}</p>
+                            {% if l.status == 'draft' %}
+                            <span class="badge badge-draft">Draft</span>
+                            {% elif l.status == 'submitted' %}
+                            <span class="badge badge-submitted">Submitted</span>
+                            {% else %}
+                            <span class="badge badge-verified">Verified</span>
+                            {% endif %}
+                        </div>
+                        <div class="flex flex-wrap gap-1">
+                            {% for bbm in l.jenis_bbm %}
+                            <span class="px-2 py-0.5 bg-blue-50 text-pertamina-blue text-xs rounded-full">{{ bbm }}</span>
+                            {% endfor %}
+                        </div>
+                        <p class="text-xs text-gray-500 mt-2">{{ l.foto_count }} foto dokumentasi</p>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- RIGHT: Statistik -->
+        <!-- ============================================================ -->
+        <div class="space-y-6">
+
+            <!-- Statistik Cards -->
+            <div class="grid grid-cols-2 lg:grid-cols-1 gap-4">
+                <div class="stat-card">
+                    <p class="text-xs text-gray-500 font-medium">Total Laporan</p>
+                    <p class="text-2xl font-bold text-gray-800 mt-1">{{ laporan_list|length }}</p>
+                </div>
+                <div class="stat-card">
+                    <p class="text-xs text-gray-500 font-medium">Laporan Bulan Ini</p>
+                    {% set ns = namespace(count=0) %}
+                    {% for l in laporan_list %}
+                        {% if l.tanggal[:7] == '2026-07' %}{% set ns.count = ns.count + 1 %}{% endif %}
+                    {% endfor %}
+                    <p class="text-2xl font-bold text-gray-800 mt-1">{{ ns.count }}</p>
+                </div>
+                <div class="stat-card">
+                    <p class="text-xs text-gray-500 font-medium">Total Foto</p>
+                    <p class="text-2xl font-bold text-gray-800 mt-1">{{ laporan_list|sum(attribute='foto_count') }}</p>
+                </div>
+                <div class="stat-card">
+                    <p class="text-xs text-gray-500 font-medium">Terakhir Lapor</p>
+                    <p class="text-sm font-bold text-gray-800 mt-1">{{ laporan_list[0].tanggal if laporan_list else 'Belum pernah' }}</p>
+                </div>
+            </div>
+
+            <!-- Status Ringkasan -->
+            <div class="bg-white rounded-xl border border-gray-200 p-4 md:p-6">
+                <h2 class="text-sm font-semibold text-gray-800 mb-4">Ringkasan Status</h2>
+                <div class="space-y-3">
+                    {% set draft_count = laporan_list|selectattr('status', 'equalto', 'draft')|list|length %}
+                    {% set submitted_count = laporan_list|selectattr('status', 'equalto', 'submitted')|list|length %}
+                    {% set verified_count = laporan_list|selectattr('status', 'equalto', 'verified')|list|length %}
+                    {% set total = laporan_list|length or 1 %}
+
+                    <div>
+                        <div class="flex items-center justify-between text-xs mb-1">
+                            <span class="text-gray-600">Draft</span>
+                            <span class="font-medium">{{ draft_count }}</span>
+                        </div>
+                        <div class="w-full bg-gray-100 rounded-full h-2">
+                            <div class="bg-gray-400 h-2 rounded-full" style="width: {{ (draft_count / total * 100)|int }}%"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex items-center justify-between text-xs mb-1">
+                            <span class="text-gray-600">Submitted</span>
+                            <span class="font-medium">{{ submitted_count }}</span>
+                        </div>
+                        <div class="w-full bg-gray-100 rounded-full h-2">
+                            <div class="bg-pertamina-blue h-2 rounded-full" style="width: {{ (submitted_count / total * 100)|int }}%"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex items-center justify-between text-xs mb-1">
+                            <span class="text-gray-600">Verified</span>
+                            <span class="font-medium">{{ verified_count }}</span>
+                        </div>
+                        <div class="w-full bg-gray-100 rounded-full h-2">
+                            <div class="bg-green-500 h-2 rounded-full" style="width: {{ (verified_count / total * 100)|int }}%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts_extra %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // Init map
+    const map = L.map('spbu-map').setView([{{ spbu.lat }}, {{ spbu.lng }}], 14);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap',
+        maxZoom: 18,
+    }).addTo(map);
+
+    const icon = L.divIcon({
+        className: 'custom-marker',
+        html: `<div style="background:#1E40AF;width:28px;height:28px;border-radius:50%;border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;">
+            <svg style="width:14px;height:14px;color:white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+        </div>`,
+        iconSize: [28, 28],
+        iconAnchor: [14, 14],
+    });
+
+    L.marker([{{ spbu.lat }}, {{ spbu.lng }}], { icon })
+        .addTo(map)
+        .bindPopup('<b>{{ spbu.nama_pt }}</b><br>{{ spbu.nomor_spbu }}')
+        .openPopup();
+
+    setTimeout(() => map.invalidateSize(), 100);
+});
+</script>
+
+<!-- Edit SPBU Modal -->
+<div id="edit-spbu-modal" class="modal-backdrop">
+    <div class="modal-content">
+        <div class="sticky top-0 bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between rounded-t-2xl">
+            <h3 class="text-base font-semibold text-gray-800">Edit SPBU</h3>
+            <button onclick="closeModal('edit-spbu-modal')" class="p-1.5 hover:bg-gray-100 rounded-lg transition">
+                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+        <form method="POST" class="p-6 space-y-4" id="edit-spbu-form-detail">
+            <input type="hidden" name="id_spbu" value="{{ spbu.id }}">
+            <div>
+                <label class="form-label">Nomor SPBU</label>
+                <input type="text" value="{{ spbu.nomor_spbu }}" class="form-input bg-gray-50" readonly>
+            </div>
+            <div>
+                <label class="form-label">Nama PT/CV</label>
+                <input type="text" name="nama_pt" value="{{ spbu.nama_pt }}" class="form-input" required>
+            </div>
+            <div>
+                <label class="form-label">Kota / Kabupaten</label>
+                <select name="kota" class="form-input" required>
+                    <option value="">Pilih kota</option>
+                    {% for k in kabupaten_list %}
+                    <option value="{{ k }}" {% if k == spbu.kota %}selected{% endif %}>{{ k }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="form-label">Alamat</label>
+                <textarea name="alamat" class="form-input resize-none" rows="2" required>{{ spbu.alamat }}</textarea>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="form-label">Latitude</label>
+                    <input type="text" name="lat" class="form-input" placeholder="-0.xxxx" value="{{ spbu.lat or '' }}">
+                </div>
+                <div>
+                    <label class="form-label">Longitude</label>
+                    <input type="text" name="lng" class="form-input" placeholder="109.xxxx" value="{{ spbu.lng or '' }}">
+                </div>
+            </div>
+            <div class="flex gap-3 pt-2">
+                <button type="button" onclick="closeModal('edit-spbu-modal')" class="flex-1 py-2.5 border border-gray-300 text-gray-700 font-medium rounded-xl text-sm">Batal</button>
+                <button type="submit" class="flex-1 py-2.5 bg-pertamina-blue text-white font-semibold rounded-xl text-sm">Simpan Perubahan</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.getElementById('edit-spbu-form-detail')?.addEventListener('submit', function(e) {
+    e.preventDefault();
+    var id = this.querySelector('[name=id_spbu]').value;
+    var fd = new FormData(this);
+    fetch('/spbu/' + id + '/edit', { method: 'POST', body: fd })
+        .then(function(r) { if(r.redirected) window.location.href = r.url; else window.location.reload(); })
+        .catch(function() { location.reload(); });
+});
+</script>
+{% endblock %}

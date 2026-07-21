@@ -1,0 +1,387 @@
+{% extends "base.html" %}
+
+{% block title %}Manajemen User — Laporan BBM SPBU{% endblock %}
+
+{% block breadcrumb %}
+<svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+<span class="text-gray-800 font-medium">Manajemen User</span>
+{% endblock %}
+
+{% block mobile_title %}Manajemen User{% endblock %}
+
+{% block content %}
+<div class="space-y-4">
+
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+            <h1 class="text-xl md:text-2xl font-bold text-gray-800">Manajemen User</h1>
+            <p class="text-sm text-gray-500">{{ users|length }} user terdaftar</p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+            <!-- Export Button -->
+            <div class="relative">
+                <button onclick="toggleDropdown('export-user-dropdown')" class="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition text-sm">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                    Export
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                </button>
+                <div id="export-user-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-50">
+                    <a href="{{ url_for('export_users_excel') }}" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition">
+                        <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        Export Data User
+                    </a>
+                    <a href="{{ url_for('template_users') }}" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition">
+                        <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                        Download Template
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Import Button -->
+            <button onclick="openModal('import-user-modal')" class="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition text-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                Import
+            </button>
+            
+            <!-- Add Button -->
+            <button onclick="openModal('add-user-modal')" class="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-pertamina-blue to-pertamina-blue-light text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-blue-500/25 transition-all text-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                Tambah User
+            </button>
+        </div>
+    </div>
+
+    <!-- Filter -->
+    <div class="bg-white rounded-xl border border-gray-200 p-4">
+        <div class="flex flex-col sm:flex-row gap-3">
+            <div class="relative flex-1">
+                <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                <input type="text" class="form-input pl-10 text-sm" placeholder="Cari user...">
+            </div>
+            <!-- Role filter chips -->
+            <div class="flex gap-2 overflow-x-auto pb-1">
+                <button class="px-3 py-1.5 bg-pertamina-blue text-white text-xs font-medium rounded-full whitespace-nowrap">Semua</button>
+                <button class="px-3 py-1.5 bg-gray-100 text-gray-600 text-xs font-medium rounded-full whitespace-nowrap hover:bg-gray-200">SPBU</button>
+                <button class="px-3 py-1.5 bg-gray-100 text-gray-600 text-xs font-medium rounded-full whitespace-nowrap hover:bg-gray-200">Pertamina</button>
+                <button class="px-3 py-1.5 bg-gray-100 text-gray-600 text-xs font-medium rounded-full whitespace-nowrap hover:bg-gray-200">Administrator</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- DESKTOP TABLE -->
+    <!-- ============================================================ -->
+    <div class="hidden md:block bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="bg-gray-50 border-b border-gray-200">
+                    <th class="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase">User</th>
+                    <th class="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Role</th>
+                    <th class="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase">SPBU</th>
+                    <th class="text-center px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Status</th>
+                    <th class="text-center px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Aksi</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {% for u in users %}
+                <tr class="hover:bg-gray-50 transition">
+                    <td class="px-6 py-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-full bg-pertamina-blue flex items-center justify-center text-white text-xs font-bold shrink-0">
+                                {{ u.nama_lengkap[0] }}
+                            </div>
+                            <div>
+                                <p class="font-medium text-gray-800">{{ u.nama_lengkap }}</p>
+                                <p class="text-xs text-gray-500">{{ u.username }} &bull; {{ u.email }}</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4">
+                        {% if u.role == 'spbu' %}
+                        <span class="px-2.5 py-1 bg-blue-50 text-pertamina-blue text-xs font-medium rounded-full">SPBU</span>
+                        {% elif u.role == 'pertamina' %}
+                        <span class="px-2.5 py-1 bg-orange-50 text-orange-700 text-xs font-medium rounded-full">Pertamina</span>
+                        {% else %}
+                        <span class="px-2.5 py-1 bg-purple-50 text-purple-700 text-xs font-medium rounded-full">Administrator</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 text-gray-600">
+                        {% if u.id_spbu %}
+                        SPBU #{{ u.id_spbu }}
+                        {% else %}
+                        <span class="text-gray-400">—</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 text-center">
+                        {% if u.is_active %}
+                        <span class="badge badge-verified">Aktif</span>
+                        {% else %}
+                        <span class="badge badge-draft">Nonaktif</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 text-center">
+                        <div class="flex items-center justify-center gap-1">
+                            <button onclick="editUser('{{ u.id }}', '{{ u.username }}', '{{ u.nama_lengkap | replace("'", "\\\\'") }}', '{{ u.email or "" }}', '{{ u.role }}', '{{ u.id_spbu or "" }}', {{ 1 if u.is_active else 0 }})" class="p-1.5 text-gray-400 hover:text-pertamina-blue hover:bg-blue-50 rounded-lg transition" title="Edit">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                            </button>
+                            <button onclick="confirmAction('Toggle status user ini?', () => showToast('Status user diubah', 'success'), {title: 'Toggle Status', confirmText: 'Toggle', type: 'warning'})" class="p-1.5 text-gray-400 hover:text-yellow-600 hover:bg-yellow-50 rounded-lg transition" title="Toggle Status">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+                            </button>
+                            <button onclick="confirmAction('Reset password user ini?', () => showToast('Password berhasil direset', 'success'), {title: 'Reset Password', confirmText: 'Reset', type: 'info'})" class="p-1.5 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition" title="Reset Password">
+                            {% if u.role != "administrator" %}
+                            <form action="{{ url_for("admin_users_hapus", id=u.id) }}" method="POST" class="inline" onsubmit="return confirm("Hapus user {{ u.username }}?")">
+                                <button type="submit" class="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition" title="Hapus">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                </button>
+                            </form>
+                            {% endif %}
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- MOBILE CARD LIST -->
+    <!-- ============================================================ -->
+    <div class="md:hidden space-y-3">
+        {% for u in users %}
+        <div class="data-card">
+            <div class="flex items-start gap-3">
+                <div class="w-10 h-10 rounded-full bg-pertamina-blue flex items-center justify-center text-white text-sm font-bold shrink-0">
+                    {{ u.nama_lengkap[0] }}
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-start justify-between gap-2">
+                        <div>
+                            <p class="font-semibold text-gray-800 text-sm">{{ u.nama_lengkap }}</p>
+                            <p class="text-xs text-gray-500">{{ u.username }}</p>
+                        </div>
+                        {% if u.role == 'spbu' %}
+                        <span class="px-2 py-0.5 bg-blue-50 text-pertamina-blue text-xs font-medium rounded-full shrink-0">SPBU</span>
+                        {% elif u.role == 'pertamina' %}
+                        <span class="px-2 py-0.5 bg-orange-50 text-orange-700 text-xs font-medium rounded-full shrink-0">Pertamina</span>
+                        {% else %}
+                        <span class="px-2 py-0.5 bg-purple-50 text-purple-700 text-xs font-medium rounded-full shrink-0">Admin</span>
+                        {% endif %}
+                    </div>
+                    <div class="flex items-center gap-3 mt-2 text-xs text-gray-500">
+                        <span>{{ u.email }}</span>
+                        {% if u.is_active %}
+                        <span class="text-green-600 font-medium">Aktif</span>
+                        {% else %}
+                        <span class="text-gray-400">Nonaktif</span>
+                        {% endif %}
+                    </div>
+                    <div class="flex gap-2 mt-3">
+                        <button onclick="editUser('{{ u.id }}', '{{ u.username }}', '{{ u.nama_lengkap | replace("'", "\\\\'") }}', '{{ u.email or "" }}', '{{ u.role }}', '{{ u.id_spbu or "" }}', {{ 1 if u.is_active else 0 }})" class="flex-1 py-2 text-xs font-medium text-pertamina-blue bg-blue-50 rounded-lg">Edit</button>
+                        <button class="flex-1 py-2 text-xs font-medium text-gray-600 bg-gray-100 rounded-lg">Reset PW</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+
+<!-- ============================================================ -->
+<!-- ADD USER MODAL -->
+<!-- ============================================================ -->
+<div id="add-user-modal" class="modal-backdrop">
+    <div class="modal-content">
+        <div class="sticky top-0 bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between rounded-t-2xl">
+            <h3 class="text-base font-semibold text-gray-800">Tambah User Baru</h3>
+            <button onclick="closeModal('add-user-modal')" class="p-1.5 hover:bg-gray-100 rounded-lg transition">
+                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+        <form class="p-6 space-y-4">
+            <div>
+                <label class="form-label">Nama Lengkap</label>
+                <input type="text" class="form-input" placeholder="Masukkan nama lengkap" required>
+            </div>
+            <div>
+                <label class="form-label">Username</label>
+                <input type="text" class="form-input" placeholder="Masukkan username" required>
+            </div>
+            <div>
+                <label class="form-label">Email</label>
+                <input type="email" class="form-input" placeholder="Masukkan email" required>
+            </div>
+            <div>
+                <label class="form-label">Password</label>
+                <input type="password" class="form-input" placeholder="Masukkan password" required>
+            </div>
+            <div>
+                <label class="form-label">Role</label>
+                <select class="form-input" required>
+                    <option value="">Pilih role</option>
+                    <option value="spbu">SPBU</option>
+                    <option value="pertamina">Pertamina</option>
+                    <option value="administrator">Administrator</option>
+                </select>
+            </div>
+            <div>
+                <label class="form-label">SPBU (khusus role SPBU)</label>
+                <select class="form-input">
+                    <option value="">Pilih SPBU</option>
+                    {% for s in spbu_list %}
+                    <option value="{{ s.id }}">{{ s.nomor_spbu }} — {{ s.nama_pt }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="flex gap-3 pt-2">
+                <button type="button" onclick="closeModal('add-user-modal')" class="flex-1 py-2.5 border border-gray-300 text-gray-700 font-medium rounded-xl text-sm">Batal</button>
+                <button type="submit" class="flex-1 py-2.5 bg-pertamina-blue text-white font-semibold rounded-xl text-sm">Simpan</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- EDIT USER MODAL -->
+<!-- ============================================================ -->
+<div id="edit-user-modal" class="modal-backdrop">
+    <div class="modal-content">
+        <div class="sticky top-0 bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between rounded-t-2xl">
+            <h3 class="text-base font-semibold text-gray-800">Edit User</h3>
+            <button onclick="closeModal('edit-user-modal')" class="p-1.5 hover:bg-gray-100 rounded-lg transition">
+                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+        <form method="POST" class="p-6 space-y-4" id="edit-user-form">
+            <input type="hidden" name="id_user" id="edit-user-id">
+            <div>
+                <label class="form-label">Username</label>
+                <input type="text" id="edit-user-username" class="form-input bg-gray-50" readonly>
+            </div>
+            <div>
+                <label class="form-label">Nama Lengkap</label>
+                <input type="text" name="nama_lengkap" id="edit-user-nama" class="form-input" required>
+            </div>
+            <div>
+                <label class="form-label">Email</label>
+                <input type="email" name="email" id="edit-user-email" class="form-input">
+            </div>
+            <div>
+                <label class="form-label">Role</label>
+                <select name="role" id="edit-user-role" class="form-input">
+                    <option value="spbu">SPBU</option>
+                    <option value="pertamina">Pertamina</option>
+                    <option value="administrator">Administrator</option>
+                </select>
+            </div>
+            <div>
+                <label class="form-label">SPBU</label>
+                <select name="id_spbu" id="edit-user-spbu" class="form-input">
+                    <option value="">Pilih SPBU</option>
+                    {% for s in spbu_list %}
+                    <option value="{{ s.id }}">{{ s.nomor_spbu }} — {{ s.nama_pt }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="flex items-center gap-3">
+                <input type="hidden" name="is_active" value="0">
+                <input type="checkbox" name="is_active" id="edit-user-active" value="1" class="w-4 h-4 rounded border-gray-300 text-pertamina-blue focus:ring-pertamina-blue">
+                <label for="edit-user-active" class="text-sm text-gray-700">Akun aktif</label>
+            </div>
+            <div class="flex gap-3 pt-2">
+                <button type="button" onclick="closeModal('edit-user-modal')" class="flex-1 py-2.5 border border-gray-300 text-gray-700 font-medium rounded-xl text-sm">Batal</button>
+                <button type="submit" class="flex-1 py-2.5 bg-pertamina-blue text-white font-semibold rounded-xl text-sm">Simpan Perubahan</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- IMPORT USER MODAL -->
+<!-- ============================================================ -->
+<div id="import-user-modal" class="modal-backdrop">
+    <div class="modal-content">
+        <div class="sticky top-0 bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between rounded-t-2xl">
+            <h3 class="text-base font-semibold text-gray-800">Import Data User</h3>
+            <button onclick="closeModal('import-user-modal')" class="p-1.5 hover:bg-gray-100 rounded-lg transition">
+                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+        <form method="POST" action="{{ url_for('import_users_excel') }}" enctype="multipart/form-data" class="p-6 space-y-4">
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <p class="text-sm font-medium text-pertamina-blue mb-2">Panduan Import:</p>
+                <ul class="text-xs text-gray-600 space-y-1">
+                    <li>• Download template terlebih dahulu</li>
+                    <li>• Isi data sesuai format template</li>
+                    <li>• Kolom wajib: Username, Password, Nama Lengkap</li>
+                    <li>• Role: spbu, pertamina, atau administrator</li>
+                    <li>• Untuk role SPBU, isi Nomor SPBU yang sudah terdaftar</li>
+                    <li>• Format file: .xlsx</li>
+                    <li>• Username duplikat akan dilewati</li>
+                </ul>
+            </div>
+            
+            <div>
+                <label class="form-label">File Excel</label>
+                <input type="file" name="file" accept=".xlsx,.xls" class="form-input" required>
+            </div>
+            
+            <div class="flex gap-3 pt-2">
+                <a href="{{ url_for('template_users') }}" class="flex-1 py-2.5 border border-gray-300 text-gray-700 font-medium rounded-xl text-sm text-center hover:bg-gray-50 transition">
+                    Download Template
+                </a>
+                <button type="submit" class="flex-1 py-2.5 bg-pertamina-blue text-white font-semibold rounded-xl text-sm">
+                    Import Data
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts_extra %}
+<script>
+function toggleDropdown(id) {
+    const dropdown = document.getElementById(id);
+    dropdown.classList.toggle('hidden');
+}
+
+function editUser(id, username, nama, email, role, id_spbu, is_active) {
+    document.getElementById('edit-user-id').value = id;
+    document.getElementById('edit-user-username').value = username;
+    document.getElementById('edit-user-nama').value = nama;
+    document.getElementById('edit-user-email').value = email;
+    
+    // Set role
+    const roleSelect = document.getElementById('edit-user-role');
+    for (let opt of roleSelect.options) {
+        opt.selected = (opt.value === role);
+    }
+    
+    // Set SPBU
+    const spbuSelect = document.getElementById('edit-user-spbu');
+    for (let opt of spbuSelect.options) {
+        opt.selected = (String(opt.value) === String(id_spbu));
+    }
+    
+    // Set active
+    document.getElementById('edit-user-active').checked = (is_active === 1);
+    
+    // Set form action
+    document.getElementById('edit-user-form').action = '/admin/users/' + id + '/edit';
+    
+    openModal('edit-user-modal');
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', (e) => {
+    const dropdown = document.getElementById('export-user-dropdown');
+    if (dropdown && !e.target.closest('.relative')) {
+        dropdown.classList.add('hidden');
+    }
+});
+</script>
+{% endblock %}

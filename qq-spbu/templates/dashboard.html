@@ -1,0 +1,345 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard — Laporan BBM SPBU{% endblock %}
+
+{% block breadcrumb %}
+<svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+<span class="text-gray-800 font-medium">Dashboard</span>
+{% endblock %}
+
+{% block mobile_title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <!-- ============================================================ -->
+    <!-- STAT CARDS -->
+    <!-- ============================================================ -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+        <!-- Total Laporan -->
+        <div class="stat-card">
+            <div class="flex items-start justify-between">
+                <div>
+                    <p class="text-xs text-gray-500 font-medium">Total Laporan</p>
+                    <p class="text-2xl md:text-3xl font-bold text-gray-800 mt-1">{{ total_laporan }}</p>
+                </div>
+                <div class="stat-icon bg-blue-100 text-pertamina-blue">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                </div>
+            </div>
+            <p class="text-xs text-green-600 mt-2 flex items-center gap-1">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
+                +12% dari bulan lalu
+            </p>
+        </div>
+
+        <!-- Laporan Bulan Ini -->
+        <div class="stat-card">
+            <div class="flex items-start justify-between">
+                <div>
+                    <p class="text-xs text-gray-500 font-medium">Bulan Ini</p>
+                    <p class="text-2xl md:text-3xl font-bold text-gray-800 mt-1">{{ laporan_bulan_ini }}</p>
+                </div>
+                <div class="stat-icon bg-green-100 text-green-600">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                </div>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">Juli 2026</p>
+        </div>
+
+        <!-- SPBU Aktif -->
+        <div class="stat-card">
+            <div class="flex items-start justify-between">
+                <div>
+                    <p class="text-xs text-gray-500 font-medium">SPBU Aktif</p>
+                    <p class="text-2xl md:text-3xl font-bold text-gray-800 mt-1">{{ spbu_aktif }}</p>
+                </div>
+                <div class="stat-icon bg-purple-100 text-purple-600">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                </div>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">Dari {{ spbu_summary|length }} SPBU</p>
+        </div>
+
+        <!-- Foto Terupload -->
+        <div class="stat-card">
+            <div class="flex items-start justify-between">
+                <div>
+                    <p class="text-xs text-gray-500 font-medium">Foto Upload</p>
+                    <p class="text-2xl md:text-3xl font-bold text-gray-800 mt-1">{{ total_foto }}</p>
+                </div>
+                <div class="stat-icon bg-orange-100 text-orange-600">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                </div>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">Total dokumentasi</p>
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- FILTER BAR -->
+    <!-- ============================================================ -->
+    <div class="bg-white rounded-xl border border-gray-200 p-3 md:p-4">
+        <div class="flex flex-col md:flex-row md:items-center gap-3">
+            <!-- Mobile: toggle filter -->
+            <button onclick="document.getElementById('filter-panel').classList.toggle('hidden')" class="md:hidden flex items-center gap-2 text-sm font-medium text-gray-600">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
+                Filter
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+
+            <div id="filter-panel" class="hidden md:flex flex-1 flex-wrap gap-3">
+                <select id="filter-kabupaten" class="form-input md:w-auto text-sm">
+                    <option value="">Semua Kabupaten</option>
+                    {% for k in kabupaten_list %}
+                    <option value="{{ k }}">{{ k }}</option>
+                    {% endfor %}
+                </select>
+                <select id="filter-status" class="form-input md:w-auto text-sm">
+                    <option value="">Semua Status</option>
+                    <option value="draft">Draft</option>
+                    <option value="submitted">Submitted</option>
+                    <option value="verified">Verified</option>
+                </select>
+                <select id="filter-bbm" class="form-input md:w-auto text-sm">
+                    <option value="">Semua Jenis BBM</option>
+                    {% for j in jenis_bbm_list %}
+                    <option value="{{ j }}">{{ j }}</option>
+                    {% endfor %}
+                </select>
+                <input type="date" id="filter-date-start" class="form-input md:w-auto text-sm" value="2026-06-01">
+                <input type="date" id="filter-date-end" class="form-input md:w-auto text-sm" value="2026-07-01">
+            </div>
+
+            <button id="btn-terapkan-filter" class="px-4 py-2 bg-pertamina-blue text-white text-sm font-medium rounded-lg hover:bg-pertamina-blue-dark transition">
+                Terapkan
+            </button>
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- CHARTS ROW 1: Line Chart (full width) -->
+    <!-- ============================================================ -->
+    <div class="bg-white rounded-xl border border-gray-200 p-4 md:p-6">
+        <div class="flex items-center justify-between mb-4">
+            <div>
+                <h3 class="text-sm font-semibold text-gray-800">Tren Laporan</h3>
+                <p class="text-xs text-gray-500">30 hari terakhir</p>
+            </div>
+            <div class="flex gap-1 bg-gray-100 rounded-lg p-0.5 text-xs">
+                <button class="px-2.5 py-1 rounded-md bg-white shadow text-pertamina-blue font-medium">7 Hari</button>
+                <button class="px-2.5 py-1 rounded-md text-gray-500 hover:text-gray-700">30 Hari</button>
+            </div>
+        </div>
+        <div class="h-48 md:h-64">
+            <canvas id="trenChart"></canvas>
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- CHARTS ROW 2: Bar + Pie side by side on desktop -->
+    <!-- ============================================================ -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+        <!-- Bar Chart: Per Kabupaten -->
+        <div class="bg-white rounded-xl border border-gray-200 p-4 md:p-6">
+            <h3 class="text-sm font-semibold text-gray-800 mb-4">Laporan per Kabupaten</h3>
+            <div class="h-48 md:h-56">
+                <canvas id="kabupatenChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Pie Chart: Jenis BBM -->
+        <div class="bg-white rounded-xl border border-gray-200 p-4 md:p-6">
+            <h3 class="text-sm font-semibold text-gray-800 mb-4">Distribusi Jenis BBM</h3>
+            <div class="h-48 md:h-56 flex items-center justify-center">
+                <canvas id="bbmChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- MAP -->
+    <!-- ============================================================ -->
+    <div class="bg-white rounded-xl border border-gray-200 p-4 md:p-6">
+        <div class="flex items-center justify-between mb-4">
+            <div>
+                <h3 class="text-sm font-semibold text-gray-800">Peta SPBU</h3>
+                <p class="text-xs text-gray-500">Lokasi SPBU di Kalimantan Barat</p>
+            </div>
+            <div class="flex items-center gap-3 text-xs">
+                <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-green-500"></span> Aktif</span>
+                <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-yellow-500"></span> Pending</span>
+                <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-gray-400"></span> Belum</span>
+            </div>
+        </div>
+        <div id="map" class="h-[300px] md:h-[400px] rounded-xl overflow-hidden"></div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- TABLE: Ringkasan per SPBU -->
+    <!-- ============================================================ -->
+    <div class="bg-white rounded-xl border border-gray-200">
+        <div class="flex items-center justify-between p-4 md:p-6 border-b border-gray-100">
+            <div>
+                <h3 class="text-sm font-semibold text-gray-800">Ringkasan SPBU</h3>
+                <p class="text-xs text-gray-500">Status pelaporan per SPBU</p>
+            </div>
+            <a href="{{ url_for('laporan_list') }}" class="text-xs text-pertamina-blue hover:underline font-medium">Lihat Semua →</a>
+        </div>
+
+        <!-- Desktop: Table -->
+        <div class="hidden md:block overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="border-b border-gray-100">
+                        <th class="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">SPBU</th>
+                        <th class="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Kota</th>
+                        <th class="text-center px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Laporan</th>
+                        <th class="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Terakhir Lapor</th>
+                        <th class="text-center px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-50">
+                    {% for s in spbu_summary %}
+                    <tr class="hover:bg-gray-50 transition cursor-pointer" onclick="window.location='{{ url_for('spbu_detail', id=s.id) }}'">
+                        <td class="px-6 py-4">
+                            <div>
+                                <p class="font-medium text-gray-800">{{ s.nama_pt }}</p>
+                                <p class="text-xs text-gray-500">{{ s.nomor_spbu }}</p>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 text-gray-600">{{ s.kota }}</td>
+                        <td class="px-6 py-4 text-center font-medium">{{ s.total_laporan }}</td>
+                        <td class="px-6 py-4 text-gray-600">{{ s.terakhir_lapor }}</td>
+                        <td class="px-6 py-4 text-center">
+                            {% if s.status == 'active' %}
+                            <span class="badge badge-verified">Aktif</span>
+                            {% else %}
+                            <span class="badge badge-draft">Belum</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Mobile: Card List -->
+        <div class="md:hidden p-4 space-y-3">
+            {% for s in spbu_summary %}
+            <a href="{{ url_for('spbu_detail', id=s.id) }}" class="data-card block">
+                <div class="flex items-start justify-between">
+                    <div>
+                        <p class="font-semibold text-gray-800 text-sm">{{ s.nama_pt }}</p>
+                        <p class="text-xs text-gray-500">{{ s.nomor_spbu }} &bull; {{ s.kota }}</p>
+                    </div>
+                    {% if s.status == 'active' %}
+                    <span class="badge badge-verified">Aktif</span>
+                    {% else %}
+                    <span class="badge badge-draft">Belum</span>
+                    {% endif %}
+                </div>
+                <div class="flex items-center gap-4 mt-3 text-xs text-gray-500">
+                    <span class="flex items-center gap-1">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        {{ s.total_laporan }} laporan
+                    </span>
+                    <span class="flex items-center gap-1">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        {{ s.terakhir_lapor }}
+                    </span>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block scripts_extra %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+<script>
+    // Pass data to JS
+    const trenLabels = {{ tren_labels|tojson }};
+    const trenData = {{ tren_data|tojson }};
+    const kotaLabels = {{ kota_labels|tojson }};
+    const kotaData = {{ kota_data|tojson }};
+    const bbmLabels = {{ bbm_labels|tojson }};
+    const bbmData = {{ bbm_data|tojson }};
+    const spbuList = {{ spbu_list_json|tojson }};
+
+    document.addEventListener('DOMContentLoaded', () => {
+        initTrenChart();
+        initKabupatenChart();
+        initBbmChart();
+        initMap();
+        initDashboardFilters();
+    });
+
+    // Dashboard filter functionality
+    function initDashboardFilters() {
+        const btnTerapkan = document.getElementById('btn-terapkan-filter');
+        const filterKabupaten = document.getElementById('filter-kabupaten');
+        const filterStatus = document.getElementById('filter-status');
+        const filterBbm = document.getElementById('filter-bbm');
+        const filterDateStart = document.getElementById('filter-date-start');
+        const filterDateEnd = document.getElementById('filter-date-end');
+
+        // Apply filter button
+        if (btnTerapkan) {
+            btnTerapkan.addEventListener('click', () => {
+                const filters = {
+                    kabupaten: filterKabupaten?.value || '',
+                    status: filterStatus?.value || '',
+                    bbm: filterBbm?.value || '',
+                    dateStart: filterDateStart?.value || '',
+                    dateEnd: filterDateEnd?.value || ''
+                };
+
+                // Show loading state
+                btnTerapkan.textContent = 'Menerapkan...';
+                btnTerapkan.disabled = true;
+
+                // Simulate filter application (in real app, this would fetch new data)
+                setTimeout(() => {
+                    showToast('Filter berhasil diterapkan', 'success');
+                    btnTerapkan.textContent = 'Terapkan';
+                    btnTerapkan.disabled = false;
+
+                    // In production, you would:
+                    // 1. Fetch filtered data from API
+                    // 2. Update charts with new data
+                    // 3. Update stat cards
+                    // 4. Update table rows
+                }, 500);
+            });
+        }
+
+        // Time range toggle (7 Hari / 30 Hari)
+        const timeButtons = document.querySelectorAll('.flex.gap-1.bg-gray-100 button');
+        timeButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Remove active state from all buttons
+                timeButtons.forEach(b => {
+                    b.classList.remove('bg-white', 'shadow', 'text-pertamina-blue', 'font-medium');
+                    b.classList.add('text-gray-500');
+                });
+
+                // Add active state to clicked button
+                btn.classList.add('bg-white', 'shadow', 'text-pertamina-blue', 'font-medium');
+                btn.classList.remove('text-gray-500');
+
+                // Get time range
+                const days = btn.textContent.includes('7') ? 7 : 30;
+
+                // Show loading state
+                showToast(`Menampilkan data ${days} hari terakhir`, 'info');
+
+                // In production, fetch data for the selected time range
+                // and update the trenChart with new data
+            });
+        });
+    }
+</script>
+{% endblock %}

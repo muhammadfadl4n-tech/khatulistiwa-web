@@ -1,0 +1,323 @@
+{% extends "base.html" %}
+
+{% block title %}Data Laporan — Laporan BBM SPBU{% endblock %}
+
+{% block breadcrumb %}
+<svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+<span class="text-gray-800 font-medium">Data Laporan</span>
+{% endblock %}
+
+{% block mobile_title %}Data Laporan{% endblock %}
+
+{% block content %}
+<div class="space-y-4">
+
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+            <h1 class="text-xl md:text-2xl font-bold text-gray-800">Data Laporan</h1>
+            <p class="text-sm text-gray-500">{{ total }} laporan ditemukan</p>
+        </div>
+        {% if current_user.role == 'spbu' %}
+        <a href="{{ url_for('laporan_baru') }}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-pertamina-blue to-pertamina-blue-light text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-blue-500/25 transition-all text-sm">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            Input Laporan
+        </a>
+        {% endif %}
+    </div>
+
+    <!-- Search & Filter -->
+    <div class="bg-white rounded-xl border border-gray-200 p-4">
+        <div class="flex flex-col md:flex-row gap-3">
+            <!-- Search -->
+            <div class="relative flex-1">
+                <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                <input type="text" id="search-input" class="form-input pl-10 text-sm" placeholder="Cari SPBU, nomor SPBU..." value="{{ search }}">
+            </div>
+
+            <!-- Filter buttons (mobile) -->
+            <div class="flex gap-2 md:hidden">
+                <button onclick="document.getElementById('filter-panel').classList.toggle('hidden')" class="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 border border-gray-200 rounded-xl text-sm font-medium text-gray-600">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
+                    Filter
+                </button>
+                <button id="btn-export-mobile" class="flex items-center justify-center gap-2 px-4 py-2.5 border border-gray-200 rounded-xl text-sm font-medium text-gray-600">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                    Export
+                </button>
+            </div>
+
+            <!-- Filter dropdowns (desktop) -->
+            <div id="filter-panel" class="hidden md:flex gap-2">
+                <select id="filter-kota" class="form-input text-sm md:w-auto">
+                    <option value="">Semua Kota</option>
+                    {% for k in kabupaten_list %}
+                    <option value="{{ k }}" {% if filter_kota == k %}selected{% endif %}>{{ k }}</option>
+                    {% endfor %}
+                </select>
+                <select id="filter-status" class="form-input text-sm md:w-auto">
+                    <option value="">Semua Status</option>
+                    <option value="draft" {% if filter_status == 'draft' %}selected{% endif %}>Draft</option>
+                    <option value="submitted" {% if filter_status == 'submitted' %}selected{% endif %}>Submitted</option>
+                    <option value="verified" {% if filter_status == 'verified' %}selected{% endif %}>Verified</option>
+                </select>
+                <select id="filter-bbm" class="form-input text-sm md:w-auto">
+                    <option value="">Semua BBM</option>
+                    {% for j in jenis_bbm_list %}
+                    <option value="{{ j }}" {% if filter_bbm == j %}selected{% endif %}>{{ j }}</option>
+                    {% endfor %}
+                </select>
+                <button id="btn-terapkan" class="px-4 py-2 bg-pertamina-blue text-white text-sm font-medium rounded-lg hover:bg-pertamina-blue-dark transition">
+                    Terapkan
+                </button>
+            </div>
+
+            <!-- Export (desktop) -->
+            <div class="hidden md:flex gap-2">
+                <button id="btn-export" class="flex items-center gap-2 px-4 py-2.5 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                    Export CSV
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- DESKTOP TABLE -->
+    <!-- ============================================================ -->
+    <div class="hidden md:block bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="bg-gray-50 border-b border-gray-200">
+                        <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase cursor-pointer hover:text-gray-700">
+                            Tanggal
+                            <svg class="w-3 h-3 inline ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </th>
+                        <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">SPBU</th>
+                        <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Kota</th>
+                        <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Jenis BBM</th>
+                        <th class="text-center px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Foto</th>
+                        <th class="text-center px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Status</th>
+                        <th class="text-center px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100" id="table-body">
+                    {% for l in laporan_list %}
+                    <tr class="hover:bg-gray-50 transition laporan-row" 
+                        data-search="{{ l.nama_spbu|lower }} {{ l.nomor_spbu|lower }}"
+                        data-kota="{{ l.kota }}"
+                        data-status="{{ l.status }}"
+                        data-bbm="{{ l.jenis_bbm|join(',') }}">
+                        <td class="px-4 py-3 text-gray-600 whitespace-nowrap">{{ l.tanggal }}</td>
+                        <td class="px-4 py-3">
+                            <p class="font-medium text-gray-800">{{ l.nama_spbu }}</p>
+                            <p class="text-xs text-gray-500">{{ l.nomor_spbu }}</p>
+                        </td>
+                        <td class="px-4 py-3 text-gray-600">{{ l.kota }}</td>
+                        <td class="px-4 py-3">
+                            <div class="flex flex-wrap gap-1">
+                                {% for bbm in l.jenis_bbm[:3] %}
+                                <span class="px-2 py-0.5 bg-blue-50 text-pertamina-blue text-xs rounded-full">{{ bbm }}</span>
+                                {% endfor %}
+                                {% if l.jenis_bbm|length > 3 %}
+                                <span class="px-2 py-0.5 bg-gray-100 text-gray-500 text-xs rounded-full">+{{ l.jenis_bbm|length - 3 }}</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td class="px-4 py-3 text-center text-gray-600">{{ l.foto_count }}</td>
+                        <td class="px-4 py-3 text-center">
+                            {% if l.status == 'draft' %}
+                            <span class="badge badge-draft">Draft</span>
+                            {% elif l.status == 'submitted' %}
+                            <span class="badge badge-submitted">Submitted</span>
+                            {% else %}
+                            <span class="badge badge-verified">Verified</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                            <a href="{{ url_for('laporan_detail', id=l.id) }}" class="inline-flex items-center gap-1 text-pertamina-blue hover:underline text-xs font-medium">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                Detail
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if total_pages > 1 %}
+        {% set window = 2 %}
+        {% set start = [1, page - window]|max %}
+        {% set end = [total_pages, page + window]|min %}
+        <div class="hidden md:flex items-center justify-between px-4 py-3 border-t border-gray-100">
+            <p class="text-xs text-gray-500">Halaman {{ page }} dari {{ total_pages }}</p>
+            <div class="flex gap-1 items-center">
+                {% if page > 1 %}
+                <a href="?page={{ page - 1 }}" class="px-3 py-1.5 border border-gray-200 rounded-lg text-xs font-medium text-gray-600 hover:bg-gray-50">Sebelum</a>
+                {% endif %}
+                
+                {% if start > 1 %}
+                <a href="?page=1" class="px-3 py-1.5 border border-gray-200 rounded-lg text-xs font-medium text-gray-600 hover:bg-gray-50">1</a>
+                {% if start > 2 %}<span class="px-2 text-gray-400 text-xs">...</span>{% endif %}
+                {% endif %}
+                
+                {% for p in range(start, end + 1) %}
+                {% if p == page %}
+                <span class="px-3 py-1.5 bg-pertamina-blue text-white rounded-lg text-xs font-medium min-w-[32px] text-center">{{ p }}</span>
+                {% else %}
+                <a href="?page={{ p }}" class="px-3 py-1.5 border border-gray-200 rounded-lg text-xs font-medium text-gray-600 hover:bg-gray-50 min-w-[32px] text-center">{{ p }}</a>
+                {% endif %}
+                {% endfor %}
+                
+                {% if end < total_pages %}
+                {% if end < total_pages - 1 %}<span class="px-2 text-gray-400 text-xs">...</span>{% endif %}
+                <a href="?page={{ total_pages }}" class="px-3 py-1.5 border border-gray-200 rounded-lg text-xs font-medium text-gray-600 hover:bg-gray-50">{{ total_pages }}</a>
+                {% endif %}
+                
+                {% if page < total_pages %}
+                <a href="?page={{ page + 1 }}" class="px-3 py-1.5 border border-gray-200 rounded-lg text-xs font-medium text-gray-600 hover:bg-gray-50">Berikut</a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- MOBILE CARD LIST -->
+    <!-- ============================================================ -->
+    <div class="md:hidden space-y-3" id="card-list">
+        {% for l in laporan_list %}
+        <a href="{{ url_for('laporan_detail', id=l.id) }}" class="data-card block laporan-row"
+           data-search="{{ l.nama_spbu|lower }} {{ l.nomor_spbu|lower }}"
+           data-kota="{{ l.kota }}"
+           data-status="{{ l.status }}"
+           data-bbm="{{ l.jenis_bbm|join(',') }}">
+            <div class="flex items-start justify-between mb-2">
+                <div>
+                    <p class="font-semibold text-gray-800 text-sm">{{ l.nama_spbu }}</p>
+                    <p class="text-xs text-gray-500">{{ l.nomor_spbu }} &bull; {{ l.kota }}</p>
+                </div>
+                {% if l.status == 'draft' %}
+                <span class="badge badge-draft">Draft</span>
+                {% elif l.status == 'submitted' %}
+                <span class="badge badge-submitted">Submitted</span>
+                {% else %}
+                <span class="badge badge-verified">Verified</span>
+                {% endif %}
+            </div>
+
+            <div class="flex items-center gap-3 text-xs text-gray-500 mb-2">
+                <span class="flex items-center gap-1">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    {{ l.tanggal }}
+                </span>
+                <span class="flex items-center gap-1">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    {{ l.foto_count }} foto
+                </span>
+            </div>
+
+            <div class="flex flex-wrap gap-1">
+                {% for bbm in l.jenis_bbm %}
+                <span class="px-2 py-0.5 bg-blue-50 text-pertamina-blue text-xs rounded-full">{{ bbm }}</span>
+                {% endfor %}
+            </div>
+        </a>
+        {% endfor %}
+
+        <!-- Pagination (mobile) -->
+        {% if total_pages > 1 %}
+        <div class="flex items-center justify-center gap-2 pt-4">
+            {% if page > 1 %}
+            <a href="?page={{ page - 1 }}" class="px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-600">←</a>
+            {% endif %}
+            <span class="text-sm text-gray-500">{{ page }} / {{ total_pages }}</span>
+            {% if page < total_pages %}
+            <a href="?page={{ page + 1 }}" class="px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-600">→</a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}
+
+{% block scripts_extra %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const searchInput = document.getElementById('search-input');
+    const filterKota = document.getElementById('filter-kota');
+    const filterStatus = document.getElementById('filter-status');
+    const filterBbm = document.getElementById('filter-bbm');
+    const btnTerapkan = document.getElementById('btn-terapkan');
+    const rows = document.querySelectorAll('.laporan-row');
+    const resultCount = document.querySelector('.text-sm.text-gray-500');
+
+    // Helper: get current URL params
+    function getParams() {
+        const params = new URLSearchParams(window.location.search);
+        return params;
+    }
+
+    // Helper: navigate with all filters
+    function applyFilters() {
+        const params = new URLSearchParams();
+        const searchVal = searchInput ? searchInput.value.trim() : '';
+        const kotaVal = filterKota ? filterKota.value : '';
+        const statusVal = filterStatus ? filterStatus.value : '';
+        const bbmVal = filterBbm ? filterBbm.value : '';
+
+        if (searchVal) params.set('search', searchVal);
+        if (kotaVal) params.set('kota', kotaVal);
+        if (statusVal) params.set('status', statusVal);
+        if (bbmVal) params.set('bbm', bbmVal);
+        params.set('page', '1');
+
+        window.location.search = params.toString();
+    }
+
+    // Debounce helper
+    function debounce(fn, delay) {
+        let timer;
+        return function(...args) {
+            clearTimeout(timer);
+            timer = setTimeout(() => fn.apply(this, args), delay);
+        };
+    }
+
+    // Search — server-side (full data)
+    if (searchInput) {
+        searchInput.addEventListener('input', debounce(applyFilters, 500));
+    }
+
+    // Filter buttons
+    if (btnTerapkan) {
+        btnTerapkan.addEventListener('click', applyFilters);
+    }
+
+    // Dropdown change — auto apply
+    [filterKota, filterStatus, filterBbm].forEach(select => {
+        if (select) {
+            select.addEventListener('change', applyFilters);
+        }
+    });
+
+    // Export CSV — server-side export with current filters
+    function exportCSV() {
+        const params = new URLSearchParams(window.location.search);
+        params.set('export', 'csv');
+        window.location.href = '/laporan/export?' + params.toString();
+    }
+
+    // Export buttons
+    const btnExport = document.getElementById('btn-export');
+    const btnExportMobile = document.getElementById('btn-export-mobile');
+    
+    if (btnExport) btnExport.addEventListener('click', exportCSV);
+    if (btnExportMobile) btnExportMobile.addEventListener('click', exportCSV);
+});
+</script>
+{% endblock %}

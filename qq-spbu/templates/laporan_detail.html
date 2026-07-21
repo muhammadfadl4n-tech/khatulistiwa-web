@@ -1,0 +1,312 @@
+{% extends "base.html" %}
+
+{% block title %}Detail Laporan — Laporan BBM SPBU{% endblock %}
+
+{% block breadcrumb %}
+<svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+<a href="{{ url_for('laporan_list') }}" class="hover:text-pertamina-blue transition">Laporan</a>
+<svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+<span class="text-gray-800 font-medium">Detail #{{ laporan.id }}</span>
+{% endblock %}
+
+{% block mobile_title %}Detail Laporan{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto space-y-6">
+
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+            <h1 class="text-xl md:text-2xl font-bold text-gray-800">Detail Laporan #{{ laporan.id }}</h1>
+            <p class="text-sm text-gray-500">Dibuat: {{ laporan.created_at }}</p>
+        </div>
+        <div class="flex gap-2">
+            {% if laporan.status == 'draft' or current_user.role in ('administrator', 'pertamina') %}
+            <a href="{{ url_for('laporan_edit', id=laporan.id) }}" class="inline-flex items-center gap-2 px-4 py-2 bg-pertamina-blue text-white text-sm font-medium rounded-xl hover:bg-pertamina-blue-dark transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                Edit
+            </a>
+            {% endif %}
+            {% if current_user.role in ('pertamina', 'administrator') and laporan.status == 'submitted' %}
+            <form action="{{ url_for('laporan_verifikasi', id=laporan.id) }}" method="POST" class="inline" onsubmit="return confirm('Verifikasi laporan ini?')">
+                <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-xl hover:bg-green-700 transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    Verifikasi
+                </button>
+            </form>
+            {% endif %}
+            {% if current_user.role == 'administrator' %}
+            <form action="{{ url_for('laporan_hapus', id=laporan.id) }}" method="POST" class="inline" onsubmit="return confirm('Hapus laporan ini? Data akan dihapus permanen.')">
+                <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-xl hover:bg-red-700 transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                    Hapus
+                </button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- ============================================================ -->
+        <!-- LEFT: Info Laporan -->
+        <!-- ============================================================ -->
+        <div class="lg:col-span-2 space-y-6">
+
+            <!-- Info SPBU -->
+            <div class="bg-white rounded-xl border border-gray-200 p-4 md:p-6">
+                <h2 class="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                    <svg class="w-4 h-4 text-pertamina-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                    Data SPBU
+                </h2>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-xs text-gray-500">Nama PT/CV</p>
+                        <p class="text-sm font-medium text-gray-800">{{ spbu.nama_pt if spbu else '-' }}</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-500">Nomor SPBU</p>
+                        <p class="text-sm font-medium text-gray-800">{{ spbu.nomor_spbu if spbu else '-' }}</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-500">Kota / Kabupaten</p>
+                        <p class="text-sm font-medium text-gray-800">{{ spbu.kota if spbu else '-' }}</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-500">Tanggal Pembongkaran</p>
+                        <p class="text-sm font-medium text-gray-800">{{ laporan.tanggal }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Jenis BBM -->
+            <div class="bg-white rounded-xl border border-gray-200 p-4 md:p-6">
+                <h2 class="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                    <svg class="w-4 h-4 text-pertamina-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+                    Jenis Produk BBM
+                </h2>
+                <div class="flex flex-wrap gap-2">
+                    {% for bbm in laporan.jenis_bbm %}
+                    <span class="px-3 py-1.5 bg-blue-50 text-pertamina-blue text-sm font-medium rounded-lg">{{ bbm }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Catatan -->
+            {% if laporan.catatan %}
+            <div class="bg-white rounded-xl border border-gray-200 p-4 md:p-6">
+                <h2 class="text-sm font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                    <svg class="w-4 h-4 text-pertamina-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                    Catatan
+                </h2>
+                <p class="text-sm text-gray-700">{{ laporan.catatan }}</p>
+            </div>
+            {% endif %}
+
+            <!-- Gallery Foto -->
+            <div class="bg-white rounded-xl border border-gray-200 p-4 md:p-6">
+                <h2 class="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                    <svg class="w-4 h-4 text-pertamina-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    Dokumentasi Foto
+                </h2>
+
+                <div class="space-y-5">
+                    <!-- Foto Pembongkaran -->
+                    <div>
+                        <p class="text-xs font-medium text-gray-600 mb-2 flex items-center gap-2">
+                            <span class="w-5 h-5 rounded-full bg-blue-100 text-pertamina-blue flex items-center justify-center text-[10px] font-bold">1</span>
+                            Foto Pembongkaran
+                        </p>
+                        <div class="gallery-scroll">
+                            {% if uploads.get('pembongkaran') %}
+                            {% for upload in uploads['pembongkaran'] %}
+                            <div class="gallery-item" onclick="openLightbox(this)">
+                                <img src="{{ url_for('uploaded_file', filename=upload.path) }}" alt="Foto pembongkaran {{ loop.index }}">
+                            </div>
+                            {% endfor %}
+                            {% else %}
+                            <p class="text-xs text-gray-400 italic">Tidak ada foto</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Foto SPP -->
+                    <div>
+                        <p class="text-xs font-medium text-gray-600 mb-2 flex items-center gap-2">
+                            <span class="w-5 h-5 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-[10px] font-bold">2</span>
+                            Foto SPP
+                        </p>
+                        <div class="gallery-scroll">
+                            {% if uploads.get('spp') %}
+                            {% for upload in uploads['spp'] %}
+                            <div class="gallery-item" onclick="openLightbox(this)">
+                                <img src="{{ url_for('uploaded_file', filename=upload.path) }}" alt="Foto SPP {{ loop.index }}">
+                            </div>
+                            {% endfor %}
+                            {% else %}
+                            <p class="text-xs text-gray-400 italic">Tidak ada foto</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Foto Dipping -->
+                    <div>
+                        <p class="text-xs font-medium text-gray-600 mb-2 flex items-center gap-2">
+                            <span class="w-5 h-5 rounded-full bg-orange-100 text-orange-700 flex items-center justify-center text-[10px] font-bold">3</span>
+                            Foto Dipping
+                        </p>
+                        <div class="gallery-scroll">
+                            {% if uploads.get('dipping') %}
+                            {% for upload in uploads['dipping'] %}
+                            <div class="gallery-item" onclick="openLightbox(this)">
+                                <img src="{{ url_for('uploaded_file', filename=upload.path) }}" alt="Foto dipping {{ loop.index }}">
+                            </div>
+                            {% endfor %}
+                            {% else %}
+                            <p class="text-xs text-gray-400 italic">Tidak ada foto</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Foto ATG -->
+                    <div>
+                        <p class="text-xs font-medium text-gray-600 mb-2 flex items-center gap-2">
+                            <span class="w-5 h-5 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center text-[10px] font-bold">4</span>
+                            Foto ATG
+                        </p>
+                        <div class="gallery-scroll">
+                            {% if uploads.get('atg') %}
+                            {% for upload in uploads['atg'] %}
+                            <div class="gallery-item" onclick="openLightbox(this)">
+                                <img src="{{ url_for('uploaded_file', filename=upload.path) }}" alt="Foto ATG {{ loop.index }}">
+                            </div>
+                            {% endfor %}
+                            {% else %}
+                            <p class="text-xs text-gray-400 italic">Tidak ada foto</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- RIGHT: Status & Timeline -->
+        <!-- ============================================================ -->
+        <div class="space-y-6">
+
+            <!-- Status Card -->
+            <div class="bg-white rounded-xl border border-gray-200 p-4 md:p-6">
+                <h2 class="text-sm font-semibold text-gray-800 mb-4">Status Laporan</h2>
+                <div class="text-center py-4">
+                    {% if laporan.status == 'draft' %}
+                    <div class="w-16 h-16 mx-auto rounded-full bg-gray-100 flex items-center justify-center mb-3">
+                        <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                    </div>
+                    <span class="badge badge-draft text-sm px-4 py-1">Draft</span>
+                    <p class="text-xs text-gray-500 mt-2">Laporan belum dikirim</p>
+                    {% elif laporan.status == 'submitted' %}
+                    <div class="w-16 h-16 mx-auto rounded-full bg-blue-100 flex items-center justify-center mb-3">
+                        <svg class="w-8 h-8 text-pertamina-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+                    </div>
+                    <span class="badge badge-submitted text-sm px-4 py-1">Submitted</span>
+                    <p class="text-xs text-gray-500 mt-2">Menunggu verifikasi</p>
+                    {% else %}
+                    <div class="w-16 h-16 mx-auto rounded-full bg-green-100 flex items-center justify-center mb-3">
+                        <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                    <span class="badge badge-verified text-sm px-4 py-1">Verified</span>
+                    <p class="text-xs text-gray-500 mt-2">Laporan telah diverifikasi</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Timeline -->
+            <div class="bg-white rounded-xl border border-gray-200 p-4 md:p-6">
+                <h2 class="text-sm font-semibold text-gray-800 mb-4">Timeline</h2>
+                <div class="space-y-0">
+                    <div class="timeline-item">
+                        <div class="timeline-dot success"></div>
+                        <p class="text-sm font-medium text-gray-800">Laporan Dibuat</p>
+                        <p class="text-xs text-gray-500">{{ laporan.created_at }}</p>
+                    </div>
+                    {% if laporan.status in ['submitted', 'verified'] %}
+                    <div class="timeline-item">
+                        <div class="timeline-dot success"></div>
+                        <p class="text-sm font-medium text-gray-800">Disubmit</p>
+                        <p class="text-xs text-gray-500">{{ laporan.updated_at }}</p>
+                    </div>
+                    {% endif %}
+                    {% if laporan.status == 'verified' %}
+                    <div class="timeline-item">
+                        <div class="timeline-dot success"></div>
+                        <p class="text-sm font-medium text-gray-800">Diverifikasi</p>
+                        <p class="text-xs text-gray-500">oleh {{ current_user.nama_lengkap }}</p>
+                    </div>
+                    {% endif %}
+                    {% if laporan.status == 'draft' %}
+                    <div class="timeline-item">
+                        <div class="timeline-dot"></div>
+                        <p class="text-sm text-gray-400">Menunggu submit...</p>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-dot"></div>
+                        <p class="text-sm text-gray-400">Menunggu verifikasi...</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Info Pengupload -->
+            <div class="bg-white rounded-xl border border-gray-200 p-4 md:p-6">
+                <h2 class="text-sm font-semibold text-gray-800 mb-4">Diupload Oleh</h2>
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-pertamina-blue flex items-center justify-center text-white text-sm font-bold">
+                        {{ laporan.user.nama_lengkap[:1] if laporan.user else 'U' }}
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-800">{{ laporan.user.nama_lengkap if laporan.user else 'User SPBU' }}</p>
+                        <p class="text-xs text-gray-500">{{ spbu.kota if spbu else '-' }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions (mobile sticky) -->
+            <div class="lg:hidden fixed bottom-16 left-0 right-0 bg-white border-t border-gray-200 p-3 flex gap-2 z-20">
+                {% if laporan.status == 'draft' or current_user.role in ('administrator', 'pertamina') %}
+                <a href="{{ url_for('laporan_edit', id=laporan.id) }}" class="flex-1 py-2.5 bg-pertamina-blue text-white text-sm font-medium rounded-xl text-center">
+                    Edit
+                </a>
+                {% endif %}
+                {% if current_user.role == 'administrator' %}
+                <form action="{{ url_for('laporan_hapus', id=laporan.id) }}" method="POST" class="flex-1" onsubmit="return confirm('Hapus laporan ini?')">
+                    <button type="submit" class="w-full py-2.5 bg-red-600 text-white text-sm font-medium rounded-xl hover:bg-red-700 transition">
+                        Hapus
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Lightbox Modal -->
+<div id="lightbox-modal" class="fixed inset-0 bg-black/90 z-[200] hidden items-center justify-center p-4" onclick="this.classList.add('hidden');this.classList.remove('flex')">
+    <img id="lightbox-img" src="" alt="" class="max-w-full max-h-full rounded-lg">
+    <button class="absolute top-4 right-4 text-white p-2 hover:bg-white/10 rounded-full" onclick="document.getElementById('lightbox-modal').classList.add('hidden');document.getElementById('lightbox-modal').classList.remove('flex')">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+    </button>
+</div>
+
+<script>
+function openLightbox(el) {
+    const img = el.querySelector('img');
+    if (img) {
+        document.getElementById('lightbox-img').src = img.src;
+        const modal = document.getElementById('lightbox-modal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+}
+</script>
+{% endblock %}
