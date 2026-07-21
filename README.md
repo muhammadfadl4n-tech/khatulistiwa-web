@@ -18,9 +18,6 @@ khatulistiwa-web/
 │       Dashboard KPI Agen LPG Kalbar
 │       → lpg.khatulistiwa.cloud (port 5555)
 │
-├── portal/                🔧 Portal LPG Backend (legacy)
-│   → Python Flask
-│
 ├── landing/               🌍 Landing Page
 │   → Static HTML/CSS
 │   → khatulistiwa.cloud
@@ -29,30 +26,14 @@ khatulistiwa-web/
 │   → Python Flask
 │   → beritakalbar.khatulistiwa.cloud
 │
-├── pangkalan-map/         🗺️ Pangkalan Map
-│   → Python Flask
-│
 ├── stok-material/         📦 Stok Material
 │   ├── client/            React frontend
 │   └── server/            Node.js backend
 │   → stok.khatulistiwa.cloud (port 3008)
 │
-├── forma/                 📋 Forms
-│   → React
-│   → forms.khatulistiwa.cloud (port 3007)
-│
-├── web-pangkalan/         🏪 Web Pangkalan
-│   → Python Flask
-│
-├── daily-activity/        📊 Daily Activity
-│   → Python Flask
-│   → mydaily.khatulistiwa.cloud (port 5561)
-│
-├── file-manager/          📁 File Manager
-│   → Python Flask
-│
-└── hermes-status/         🤖 Hermes Status
-    → Python Flask
+└── qq-spbu/               ⛽ QQ-SPBU
+    → Python Flask + Gunicorn + PostgreSQL
+    → qq-spbu.khatulistiwa.cloud (port 5560)
 ```
 
 ## 🚀 Deployment
@@ -64,7 +45,7 @@ khatulistiwa-web/
 | Landing | [khatulistiwa.cloud](https://khatulistiwa.cloud) | Static | HTML/CSS |
 | Berita Kalbar | beritakalbar.khatulistiwa.cloud | - | Flask |
 | Stok Material | [stok.khatulistiwa.cloud](https://stok.khatulistiwa.cloud) | 3008 | React + Node.js |
-| MyDaily | mydaily.khatulistiwa.cloud | 5561 | Flask |
+| QQ-SPBU | qq-spbu.khatulistiwa.cloud | 5560 | Flask + PostgreSQL |
 
 ## 🛠 Tech Stack
 
